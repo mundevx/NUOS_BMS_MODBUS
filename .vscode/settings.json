@@ -1,0 +1,12 @@
+{
+  "idf.currentSetup": "C:\\Users\\procu\\esp\\v5.5\\esp-idf",
+  "idf.customExtraVars": {},
+  "clangd.path": "c:\\esp\\esp-zigbee-sdk\\tools\\esp-clang\\esp-20.1.1_20250829\\esp-clang\\bin\\clangd.exe",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=**",
+    "--compile-commands-dir=c:\\esp\\esp-zigbee-sdk\\examples\\esp_zigbee_HA_sample\\NUOS_BMS_ZB_Module\\build"
+  ],
+  "idf.portWin": "COM7",
+  "idf.flashType": "UART"
+}
