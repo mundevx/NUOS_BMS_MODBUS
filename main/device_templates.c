@@ -242,6 +242,7 @@ static void ups(endpoint_config_t *c, uint8_t ep)
     add_ref(c, "Output Load % A",          4, 30021, 1, MB_TYPE_UINT16);
     add_ref(c, "Output Load % B",          4, 30022, 1, MB_TYPE_UINT16);
     add_ref(c, "Output Load % C",          4, 30023, 1, MB_TYPE_UINT16);
+    //Comment
 
     add_ref(c, "Output Power kVA A",       4, 30047, 1, MB_TYPE_UINT16);
     add_ref(c, "Output Power kVA B",       4, 30048, 1, MB_TYPE_UINT16);
