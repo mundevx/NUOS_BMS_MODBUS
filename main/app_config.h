@@ -1,89 +1,127 @@
-#ifndef _APP_CONFIG_H_
-    #define _APP_CONFIG_H_
-    
-    #define DEVICE_4R_ON_OFF_LIGHT 					                1
-    #define DEVICE_2R_ON_OFF_LIGHT 					                2
-    #define DEVICE_2T_ANALOG_DIMMABLE_LIGHT 			            3
-    #define DEVICE_2T_PHASE_CUT_DIMMABLE_LIGHT 			            4
-    #define DEVICE_1CH_CURTAIN 					                    5
-    #define DEVICE_2CH_CURTAIN 					                    6  // Rarely Used
+#ifndef APP_CONFIG_H
+#define APP_CONFIG_H
 
-    #define DEVICE_1_LIGHT_1_FAN                                    7
-    #define DEVICE_IR_BLASTER                                       8
-    #define DEVICE_WIRELESS_SCENE_SWITCH                            9
-  
-    #define DEVICE_1_LIGHT_1_FAN_CUSTOM                             10 // customized clusters for Tuya
-    #define DEVICE_IR_BLASTER_CUSTOM                                11 // customized clusters for Tuya
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include "esp_err.h"
 
-    #define DEVICE_CCT_DALI_CUSTOM                                  12 // customized clusters for Tuya
-    #define DEVICE_RGB_DALI                                         13 // SW1=DALI RED, SW2=DALI GREEN, SW3=DALI BLUE, SW4=DALI WHITE
-    #define DEVICE_RGB_DMX                                          14 
-    #define DEVICE_GROUP_DALI                                       15 // SW1=GROUP1 DALI LIGHTS, SW2=GROUP2 DALI LIGHTS, SW3=GROUP3 DALI LIGHTS, SW4=GROUP4 DALI LIGHTS
+#define APP_MAX_ENDPOINTS 50
+#define APP_MAX_ATTRIBUTES 64
+/* This is the storage/wire ceiling, not a per-endpoint Zigbee allocation.
+ * Each H2 endpoint allocates exactly its configured attribute count. */
+#define APP_NAME_LEN 32
+#define APP_TOPIC_LEN 96
+#define APP_MQTT_FIELD_LEN 96
 
-    #define DEVICE_RINGING_BELL_2     					            16 //
-    #define DEVICE_SENSOR_MOTION                                    17
-    #define DEVICE_SENSOR_CONTACT_SWITCH                            18
-    #define DEVICE_SENSOR_GAS_LEAK                                  19
-    #define DEVICE_SENSOR_TEMPERATURE_HUMIDITY                      20 
-    #define DEVICE_SENSOR_LUX                                       21 // TSL2561
+/* Endpoint number is also the Modbus slave ID. 0 is reserved for broadcast. */
+typedef enum {
+    DEVICE_LT_PANEL = 0,
+    DEVICE_DG,
+    DEVICE_UPS,
+    DEVICE_LIFT,
+    DEVICE_ESCALATOR,
+    DEVICE_FIRE_HYDRANT,
+    DEVICE_ANEMOMETER,
+    DEVICE_AC,
+    DEVICE_VENTILATION_FAN,
+    DEVICE_CUSTOM,
+    DEVICE_SLD,
+    DEVICE_LIGHTING,
+    DEVICE_COUNT
+} device_type_t;
 
-    #define DEVICE_WIRELESS_REMOTE_SWITCH                           22 // SW1=DEVICES_BIND, SW2=DEVICES_BIND, SW3=DEVICES_BIND, SW4=DEVICES_BIND
-    #define DEVICE_1CH_CURTAIN_SWITCH 					            23 
+typedef enum {
+    MB_FC01 = 1,
+    MB_FC02 = 2,
+    MB_FC03 = 3,
+    MB_FC04 = 4,
+    MB_FC05 = 5,
+    MB_FC06 = 6,
+    MB_FC15 = 15,
+    MB_FC16 = 16
+} modbus_function_t;
 
-    #define DEVICE_WIRELESS_GROUP_SWITCH                            24 // Currently Running Remote Switch
-    #define DEVICE_SCENE_DALI                                       25 // SW1=SCENE1, SW2=SCENE2, SW3=SCENE3, SW4=SCENE4
-    #define DEVICE_DALI_DIRECT_SWITCH                               26 // SW1=ON/OFF, SW2=ON/OFF for 2 endpoints 2 buttons, 2 leds
+typedef enum {
+    MB_TYPE_BOOL = 0,
+    MB_TYPE_UINT16,
+    MB_TYPE_INT16,
+    MB_TYPE_UINT32,
+    MB_TYPE_INT32,
+    MB_TYPE_FLOAT32,
+    MB_TYPE_UINT64,
+    MB_TYPE_INT64,
+    MB_TYPE_STRING,
+    MB_TYPE_UINT8,
+    MB_TYPE_INT8,
+    MB_TYPE_UINT24,
+    MB_TYPE_UINT48
+} modbus_data_type_t;
 
-    // TS004F (instead of TS0044) buttons has only Single Tap
-    #define USE_NUOS_ZB_DEVICE_TYPE                                 DEVICE_2T_ANALOG_DIMMABLE_LIGHT
+typedef enum {
+    MB_WORD_BIG_FIRST = 0,
+    MB_WORD_LOW_FIRST = 1
+} modbus_word_order_t;
 
-    #define SETUP_LONG_PRESS_TIME_IN_SECS                           10
-    //#define USE_NVS_INIT
-    //#define DONT_USE_ZIGBEE                                       // For Expo or Demo Only   
-    #define NEW_SDK_6
-    //#define USE_OTA
+typedef struct {
+    bool enabled;
+    uint8_t attribute_id;       /* Zigbee attribute index, consumed by H2 */
+    uint8_t function;           /* 1,2,3,4,5,6,15,16 */
+    uint16_t address;           /* zero-based Modbus PDU address */
+    uint8_t reg_count;          /* 1..32; coils use bit count where appropriate */
+    uint8_t data_type;
+    uint8_t word_order;
+    /* Packed attribute support: each component is one 16-bit Modbus register. */
+    uint8_t packed_count;
+    uint16_t address2;
+    uint16_t address3;
+    char name[APP_NAME_LEN];
+} modbus_attribute_t;
 
+typedef struct {
+    bool enabled;
+    uint8_t slave_id;
+    uint8_t device_type;
+    uint8_t attribute_count;
+    uint16_t cluster_id;
+    modbus_attribute_t *attributes;
+} endpoint_config_t;
 
-    #if(USE_NUOS_ZB_DEVICE_TYPE == DEVICE_GROUP_DALI || USE_NUOS_ZB_DEVICE_TYPE == DEVICE_1_LIGHT_1_FAN || USE_NUOS_ZB_DEVICE_TYPE == DEVICE_IR_BLASTER)
-        //#define USE_HOME_ASSISTANT
-        #define USE_TUYA_BRDIGE
-        #if(USE_NUOS_ZB_DEVICE_TYPE == DEVICE_GROUP_DALI)
-            #define USE_INDIVIDUAL_DALI_ADDRESSING
-        #endif
-    #elif(USE_NUOS_ZB_DEVICE_TYPE == DEVICE_WIRELESS_SCENE_SWITCH ||USE_NUOS_ZB_DEVICE_TYPE == DEVICE_WIRELESS_GROUP_SWITCH)
-        //for local scene switch
-        #define USE_CUSTOM_SCENE   
-        #define USE_TUYA_BRDIGE
-    #else
-        #define USE_TUYA_BRDIGE
-    #endif
+typedef struct {
+    uint32_t baud_rate;
+    uint8_t data_bits;
+    uint8_t stop_bits;
+    uint8_t parity;             /* 0 none, 1 odd, 2 even */
+} serial_config_t;
 
-    //#define WRITE_NVS_CONFIG
-    //#define ZB_FACTORY_RESET
-    #define USE_TRIPLE_CLICK
-    #define USE_DOUBLE_CLICK
+typedef struct {
+    char broker[APP_MQTT_FIELD_LEN];
+    uint16_t port;
+    char username[APP_MQTT_FIELD_LEN];
+    char password[APP_MQTT_FIELD_LEN];
+    char client_id[APP_MQTT_FIELD_LEN];
+    char publish_topic[APP_TOPIC_LEN];
+} mqtt_display_config_t;
 
-    #if(USE_NUOS_ZB_DEVICE_TYPE == DEVICE_RGB_DALI || USE_NUOS_ZB_DEVICE_TYPE == DEVICE_RGB_DMX)
-        #define COLOR_RGB_ONLY                                      1   //3 channels
-        #define COLOR_RGBW                                          2   //4 channels
-        #define COLOR_RGB_CW_WW                                     3   //5 channels
+esp_err_t app_config_init(void);
+esp_err_t app_config_load_serial(serial_config_t *cfg);
+esp_err_t app_config_save_serial(const serial_config_t *cfg);
+esp_err_t app_config_load_endpoint(uint8_t endpoint, endpoint_config_t *cfg);
+esp_err_t app_config_save_endpoint(uint8_t endpoint, const endpoint_config_t *cfg);
+esp_err_t app_config_delete_endpoint(uint8_t endpoint);
+esp_err_t app_config_load_endpoint_count(uint8_t *count);
+esp_err_t app_config_save_endpoint_count(uint8_t count);
+esp_err_t app_config_load_mqtt(mqtt_display_config_t *cfg);
+esp_err_t app_config_save_mqtt(const mqtt_display_config_t *cfg);
+esp_err_t app_config_reset_defaults(void);
+esp_err_t app_config_calculate_zigbee_hash(uint32_t *hash_out, uint8_t *endpoint_count_out);
 
-        #if(USE_NUOS_ZB_DEVICE_TYPE == DEVICE_RGB_DMX)
-            #define USE_COLOR_DEVICE                                    COLOR_RGB_ONLY
-        #else
-            #define USE_COLOR_DEVICE                                    COLOR_RGB_CW_WW  
+esp_err_t app_config_load_template(uint8_t device_type, endpoint_config_t *cfg);
+esp_err_t app_config_save_template(uint8_t device_type, const endpoint_config_t *cfg);
+esp_err_t app_config_seed_device_templates(void);
+void app_config_free_endpoint(endpoint_config_t *cfg);
 
-            #define COMM_MODE_BROADCAST                                 1
-            #define COMM_MODE_GROUP_CTRL                                2
-            #define COMM_MODE_ADDR_CTRL                                 3
+const char *device_type_name(uint8_t type);
+const char *modbus_data_type_name(uint8_t type);
 
-            #define COMMUNICATION_MODE                                  COMM_MODE_ADDR_CTRL
-        #endif
-    #elif(USE_NUOS_ZB_DEVICE_TYPE == DEVICE_CCT_DALI_CUSTOM)    
-        #define COMM_MODE_BROADCAST                                 1
-        #define COMM_MODE_GROUP_CTRL                                2
-        #define COMM_MODE_ADDR_CTRL                                 3
-
-        #define COMMUNICATION_MODE                                  COMM_MODE_BROADCAST   
-    #endif
 #endif

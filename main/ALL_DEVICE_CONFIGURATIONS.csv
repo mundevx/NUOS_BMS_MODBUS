@@ -1,0 +1,74 @@
+format,version,endpoint,slave_id,enabled,device_type,device_name,cluster_id,attribute_enabled,attribute_id,function,address,reference,reg_count,data_type,word_order,name
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,0.0,4.0,3029.0,43030.0,1,1.0,0.0,Voltage R
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,1.0,4.0,3031.0,43032.0,1,1.0,0.0,Voltage Y
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,2.0,4.0,3033.0,43034.0,1,1.0,0.0,Voltage B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,3.0,4.0,3035.0,43036.0,1,1.0,0.0,Current R
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,4.0,4.0,3037.0,43038.0,1,1.0,0.0,Current Y
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,5.0,4.0,3039.0,43040.0,1,1.0,0.0,Current B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,6.0,4.0,3067.0,43068.0,1,1.0,0.0,Apparent Power R
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,7.0,4.0,3069.0,43070.0,1,1.0,0.0,Apparent Power Y
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,8.0,4.0,3071.0,43072.0,1,1.0,0.0,Apparent Power B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,9.0,4.0,3131.0,43132.0,1,1.0,0.0,Frequency
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,10.0,4.0,3125.0,43126.0,1,1.0,0.0,Power Consumption kWh
+NUOS-BMS-Modbus-Configuration,1,1,1,True,0,LT Panel / Panel MFM,0xFC10,1.0,11.0,4.0,3161.0,43162.0,1,1.0,0.0,Power Factor
+NUOS-BMS-Modbus-Configuration,1,1,1,True,3,Lift,0xFC40,1.0,0.0,4.0,3.0,30004.0,1,1.0,0.0,Lift 1 status word
+NUOS-BMS-Modbus-Configuration,1,2,2,True,3,Lift,0xFC40,1.0,0.0,4.0,10.0,30011.0,1,1.0,0.0,Lift 2 status word
+NUOS-BMS-Modbus-Configuration,1,3,3,True,3,Lift,0xFC40,1.0,0.0,4.0,17.0,30018.0,1,1.0,0.0,Lift 3 status word
+NUOS-BMS-Modbus-Configuration,1,4,4,True,3,Lift,0xFC40,1.0,0.0,4.0,24.0,30025.0,1,1.0,0.0,Lift 4 status word
+NUOS-BMS-Modbus-Configuration,1,5,5,True,3,Lift,0xFC40,1.0,0.0,4.0,31.0,30032.0,1,1.0,0.0,Lift 5 status word
+NUOS-BMS-Modbus-Configuration,1,6,6,True,3,Lift,0xFC40,1.0,0.0,4.0,38.0,30039.0,1,1.0,0.0,Lift 6 status word
+NUOS-BMS-Modbus-Configuration,1,7,7,True,3,Lift,0xFC40,1.0,0.0,4.0,45.0,30046.0,1,1.0,0.0,Lift 7 status word
+NUOS-BMS-Modbus-Configuration,1,1,1,True,4,Escalator,0xFC50,,,,,,1,,,
+NUOS-BMS-Modbus-Configuration,1,1,1,True,5,Fire Hydrant,0xFC60,,,,,,1,,,
+NUOS-BMS-Modbus-Configuration,1,1,1,True,6,Anemometer,0xFC70,,,,,,1,,,
+NUOS-BMS-Modbus-Configuration,1,1,1,True,7,AC,0xFC80,,,,,,1,,,
+NUOS-BMS-Modbus-Configuration,1,1,1,True,8,Ventilation Fan,0xFC90,,,,,,1,,,
+NUOS-BMS-Modbus-Configuration,1,1,1,True,9,Custom,0xFCE0,,,,,,1,,,
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,0,3,11,40012,1,9,0,Active Fault
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,1,3,12,40013,1,9,0,Fault Type
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,2,3,4044,4044,1,9,0,Output Frequency
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,3,3,60,40061,1,9,0,Battery Voltage
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,4,3,61,40062,1,9,0,Oil Pressure
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,5,3,63,40064,1,9,0,Coolant Temperature
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,6,3,67,40068,1,9,0,Running Status
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,7,3,21,40022,1,11,0,Output Voltage Mains Line R
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,8,3,22,40023,1,11,0,Output Voltage Mains Line Y
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,9,3,23,40024,1,11,0,Output Voltage Mains Line B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,10,3,17,40018,1,11,0,Output Voltage Mains Neutral R
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,11,3,18,40019,1,11,0,Output Voltage Mains Neutral Y
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,12,3,19,40020,1,11,0,Output Voltage Mains Neutral B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,13,3,28,40029,1,11,0,Current Load R
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,14,3,29,40030,1,11,0,Current Load Y
+NUOS-BMS-Modbus-Configuration,1,1,1,True,1,DG,0xFC20,True,15,3,30,40031,1,11,0,Current Load B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,0,4.0,3.0,30004.0,1,1.0,0.0,Input Frequency
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,1,4.0,4.0,30005.0,1,1.0,0.0,Input Current A
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,2,4.0,5.0,30006.0,1,1.0,0.0,Input Current B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,3,4.0,6.0,30007.0,1,1.0,0.0,Input Current C
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,4,4.0,7.0,30008.0,1,1.0,0.0,Input PF A
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,5,4.0,8.0,30009.0,1,1.0,0.0,Input PF B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,6,4.0,9.0,30010.0,1,1.0,0.0,Input PF C
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,7,4.0,13.0,30014.0,1,1.0,0.0,Output Frequency
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,8,4.0,14.0,30015.0,1,1.0,0.0,Output Current A
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,9,4.0,15.0,30016.0,1,1.0,0.0,Output Current B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,10,4.0,16.0,30017.0,1,1.0,0.0,Output Current C
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,11,4.0,17.0,30018.0,1,1.0,0.0,Output kW A
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,12,4.0,18.0,30019.0,1,1.0,0.0,Output kW B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,13,4.0,19.0,30020.0,1,1.0,0.0,Output kW C
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,14,4.0,20.0,30021.0,1,1.0,0.0,Load % A
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,15,4.0,21.0,30022.0,1,1.0,0.0,Load % B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,16,4.0,22.0,30023.0,1,1.0,0.0,Load % C
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,17,4.0,46.0,30047.0,1,1.0,0.0,Output kVA A
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,18,4.0,47.0,30048.0,1,1.0,0.0,Output kVA B
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,19,4.0,48.0,30049.0,1,1.0,0.0,Output kVA C
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,20,4.0,30.0,30031.0,1,1.0,0.0,Battery Voltage +
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,21,4.0,31.0,30032.0,1,1.0,0.0,Battery Voltage -
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,22,4.0,38.0,30039.0,1,1.0,0.0,Battery Temperature
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,23,4.0,70.0,30071.0,1,1.0,0.0,UPS System Status
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,24,3.0,1.0,40002.0,1,1.0,0.0,Parallel ID
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,25,3.0,6.0,40007.0,1,1.0,0.0,Number of Parallel UPS
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,26,3.0,203.0,40204.0,1,1.0,0.0,Output Dry Contact
+NUOS-BMS-Modbus-Configuration,1,1,1,True,2,UPS,0xFC30,1.0,27,3.0,220.0,40221.0,1,1.0,0.0,Input Dry Contact 1
+NUOS-BMS-Modbus-Configuration,2,2,2,True,2,UPS,0xFC31,False,0,4,0,,1,1,0,Fault Status
+NUOS-BMS-Modbus-Configuration,2,2,2,True,2,UPS,0xFC31,False,1,4,0,,1,1,0,Fault Code
+NUOS-BMS-Modbus-Configuration,2,2,2,True,2,UPS,0xFC31,False,2,4,0,,1,1,0,Error Status
+NUOS-BMS-Modbus-Configuration,2,2,2,True,2,UPS,0xFC31,False,3,4,0,,1,1,0,Error Code

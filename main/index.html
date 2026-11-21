@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NUOS BMS • ESP32-C6</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#687386;--line:#dce3ed;--accent:#1769e0;--danger:#c62828;--ok:#1b7f4a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#101827;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}header h1{margin:0;font-size:20px}header small{color:#aeb9ca}
+.container{max-width:1200px;margin:24px auto;padding:0 16px}.top{display:grid;grid-template-columns:220px 1fr 250px;gap:12px;align-items:end}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 3px 14px #18243a0a}
+label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px}input,select,button,textarea{font:inherit}input,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink)}button{border:0;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:700}.primary{background:var(--accent);color:#fff}.secondary{background:#e9eef6;color:var(--ink)}.danger{background:#feecec;color:var(--danger)}.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -18px 18px;padding:0 18px}.tab{background:none;color:var(--muted);border-radius:0;padding:12px 18px;border-bottom:3px solid transparent}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}.tabcontent{display:none}.tabcontent.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.attr{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fbfcfe}.attrgrid{display:grid;grid-template-columns:70px 1.4fr 1fr 1fr 100px 120px 90px;gap:8px;align-items:end}.attrgrid .wide{grid-column:span 1}.muted{color:var(--muted);font-size:12px}.endpoint-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.ep-card{padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#fff}.ep-card:hover{border-color:var(--accent)}.badge{display:inline-block;padding:3px 7px;border-radius:20px;background:#edf3ff;color:var(--accent);font-size:11px;font-weight:700}.status{font-size:12px;padding:7px 10px;border-radius:20px;background:#edf1f5;color:var(--muted)}.ok{color:var(--ok)}.notice{background:#fff8e1;border:1px solid #f1df9d;border-radius:10px;padding:12px;font-size:13px;margin-bottom:12px}.mqtt-disabled{opacity:.7}.actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}.fileinput{display:none}.csvbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.csvbar input[type=file]{display:none}.csvhelp{font-size:12px;color:var(--muted);margin-top:8px}.modal{display:none;position:fixed;inset:0;background:#0b122099;z-index:1000;padding:24px;overflow:auto}.modal.open{display:flex;align-items:flex-start;justify-content:center}.modal-card{width:min(1100px,100%);background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:0 20px 60px #0004;padding:20px;margin:20px auto}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.modal-head h2{margin:0}.modal-close{background:#e9eef6;color:var(--ink);font-size:20px;padding:6px 11px}.edit-meta{display:grid;grid-template-columns:180px 1fr 250px;gap:12px;margin-bottom:14px}.modal-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:16px}.ep-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.ep-actions button{padding:7px 12px}.ep-card{cursor:default;transition:background .15s,border-color .15s,box-shadow .15s}.ep-card.modbus-error{background:#fff1f1;border-color:#e53935;box-shadow:0 0 0 1px #e5393522}.ep-card.modbus-ok{background:#fff}.ep-status-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}.status-btn{padding:7px 11px}.status-btn.ok{background:#e8f7ee;color:#176b3d}.status-btn.error{background:#fee2e2;color:#b42318}.status-btn.pending{background:#eef2f7;color:#687386}.rtu-details{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}.rtu-details.open{display:block}.rtu-table{width:100%;border-collapse:collapse;font-size:11px}.rtu-table th,.rtu-table td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.rtu-table th{color:var(--muted)}.rtu-ok{color:var(--ok);font-weight:700}.rtu-error{color:var(--danger);font-weight:700}.rtu-message{font-size:12px;margin:6px 0}
+@media(max-width:850px){.top,.grid{grid-template-columns:1fr 1fr}.attrgrid{grid-template-columns:1fr 1fr}.attrgrid>*{grid-column:auto!important}}@media(max-width:560px){.top,.grid{grid-template-columns:1fr}header{padding:15px}}
+</style>
+</head>
+<body>
+<header><div><h1>NUOS BMS • ESP32-C6 Modbus Gateway</h1><small>Modbus → ESP32-C6 → UART → ESP32-H2</small></div><span id="h2status" class="status">H2: checking…</span></header>
+<div class="container">
+<div class="card top">
+<div><label>Endpoint Count</label><select id="endpointCount"></select></div>
+<div><label>Device / Module</label><select id="deviceType"></select></div>
+<div><label>Zigbee Cluster</label><select id="clusterId"></select><input id="clusterCustom" type="text" placeholder="Custom cluster ID e.g. 0xFC55" style="display:none;margin-top:6px"></div>
+<div class="notice" style="grid-column:1/-1"><b>Dynamic Zigbee attributes:</b> H2 creates exactly the enabled attribute count for each endpoint (1–64). There is no 16-attribute per-endpoint limit. DG can use 51/52 attributes and LT Panel 12 on a single endpoint.</div><div class="csvbar"><button class="secondary" onclick="document.getElementById('csvFile').click()">Import CSV (Excel-compatible)</button><input id="csvFile" type="file" accept=".csv,text/csv,.txt" onchange="importCSVFile(event)"><button class="secondary" onclick="downloadCurrentCSV()">Download Current CSV</button><button class="secondary" onclick="downloadAllCSV()">Download All CSV</button></div>
+</div>
+</div>
+<div class="card">
+<div class="tabs"><button class="tab active" data-tab="serial">Serial Port</button><button class="tab" data-tab="modbus">Modbus</button><button class="tab" data-tab="mqtt">MQTT</button></div>
+<section id="serial" class="tabcontent active"><div class="grid"><div><label>Baud Rate</label><select id="baud"><option>300</option><option>600</option><option>1200</option><option>2400</option><option>4800</option><option selected>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option><option>230400</option></select></div><div><label>Data Bits</label><select id="dataBits"><option>7</option><option selected>8</option></select></div><div><label>Stop Bits</label><select id="stopBits"><option selected>1</option><option>2</option></select></div><div><label>Parity</label><select id="parity"><option value="0" selected>None</option><option value="1">Odd</option><option value="2">Even</option></select></div></div><div class="actions"><span class="muted">Changes are applied immediately to RS485 UART1.</span><button class="primary" onclick="saveSerial()">Save Serial Settings</button></div></section>
+<section id="modbus" class="tabcontent"></section>
+<section id="mqtt" class="tabcontent"><div class="notice"><b>Display only.</b> MQTT is intentionally not implemented in ESP32-C6 firmware. These settings are shown here for future system integration only.</div><div class="grid mqtt-disabled"><div><label>Broker</label><input id="mqttBroker" placeholder="mqtt://broker"></div><div><label>Port</label><input id="mqttPort" type="number" value="1883"></div><div><label>Username</label><input id="mqttUser"></div><div><label>Password</label><input id="mqttPass" type="password"></div><div><label>Client ID</label><input id="mqttClient"></div><div><label>Publish Topic</label><input id="mqttTopic"></div></div><p class="muted">No MQTT connection, publish, subscribe or network task is created by this C6 project.</p></section>
+</div>
+<div class="card"><h3 style="margin-top:0">Saved Endpoints</h3><div id="endpointList" class="endpoint-list"></div></div>
+<div id="endpointEditor" class="modal" role="dialog" aria-modal="true" aria-labelledby="endpointEditorTitle">
+  <div class="modal-card">
+    <div class="modal-head"><h2 id="endpointEditorTitle">Edit Endpoint</h2><button class="modal-close" onclick="closeEndpointEditor()" aria-label="Close">×</button></div>
+    <div class="edit-meta">
+      <div><label>Endpoint / Modbus Slave ID</label><select id="editEndpoint"></select></div>
+      <div><label>Device / Module</label><select id="editDeviceType"></select></div>
+      <div><label>Zigbee Cluster</label><select id="editClusterId"></select><input id="editClusterCustom" type="text" placeholder="Custom cluster ID e.g. 0xFC55" style="display:none;margin-top:6px"></div>
+    </div>
+    <div class="toolbar" style="margin-bottom:12px"><button class="primary" onclick="loadTemplateFromEditor()">LOAD DEFAULT MAPPING</button><button class="secondary" onclick="loadSavedFromEditor()">LOAD SAVED</button></div>
+    <div id="attrs"></div>
+    <div class="toolbar" style="margin-top:12px"><button class="secondary" onclick="addAttr()">+ Add Attribute / Register</button></div>
+    <div class="modal-actions"><span id="saveMsg" class="muted"></span><div class="toolbar"><button class="danger" onclick="deleteEndpointFromEditor()">Delete Endpoint</button><button class="secondary" onclick="closeEndpointEditor()">Cancel</button><button class="primary" onclick="saveEndpointFromEditor()">Save & Apply Endpoint</button></div></div>
+  </div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);let current={endpoint:1,enabled:true,device_type:9,cluster_id:0,attributes:[]};let savedEndpointCount=1;let modbusStatusCache={};let editContext=null;
+const functions=[[1,'01 • Read Coils'],[2,'02 • Read Discrete Inputs'],[3,'03 • Read Holding Registers'],[4,'04 • Read Input Registers'],[5,'05 • Write Single Coil'],[6,'06 • Write Single Register'],[15,'15 • Write Multiple Coils'],[16,'16 • Write Multiple Registers']];
+const types=[[0,'BOOL (1 byte)'],[1,'UINT16 (2 bytes)'],[2,'INT16 (2 bytes)'],[3,'UINT32 (4 bytes)'],[4,'INT32 (4 bytes)'],[5,'FLOAT32 (4 bytes)'],[6,'UINT64 (8 bytes)'],[7,'INT64 (8 bytes)'],[8,'STRING (variable)'],[9,'UINT8 (1 byte)'],[10,'INT8 (1 byte)'],[11,'UINT24_t (3 bytes)'],[12,'UINT48_t (6 bytes)']];
+const typeByName=Object.fromEntries(types.map(x=>[x[1].split(' ')[0].toUpperCase(),x[0]]));
+const DEFAULT_CLUSTERS={0:0xFC10,1:0xFC20,2:0xFC30,3:0xFC40,4:0xFC50,5:0xFC60,6:0xFC70,7:0xFC80,8:0xFC90,9:0xFCE0,10:0xFCB0,11:0xFC00};
+const CLUSTER_OPTIONS=[
+ [0xFC00,'FC00 • Lighting'],[0xFC10,'FC10 • LT Panel / Panel MFM'],[0xFC20,'FC20 • DG'],
+ [0xFC30,'FC30 • UPS Main'],[0xFC31,'FC31 • UPS Fault / Error'],[0xFC40,'FC40 • Lift'],
+ [0xFC50,'FC50 • Escalator'],[0xFC60,'FC60 • Fire Hydrant'],[0xFC70,'FC70 • Anemometer'],
+ [0xFC80,'FC80 • AC'],[0xFC90,'FC90 • Ventilation Fan'],[0xFCB0,'FCB0 • SLD'],[0xFCE0,'FCE0 • Custom'],
+ [0xFFFF,'CUSTOM • Enter cluster ID']
+];
+const MAX_ATTRIBUTES_PER_ENDPOINT=64;
+function api(url,opt={}){const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),5000);return fetch(url,{headers:{'Content-Type':'application/json'},...opt,signal:ctrl.signal}).then(async r=>{if(!r.ok)throw Error(await r.text());return r.json()}).finally(()=>clearTimeout(timer))}
+const UI_STATE_KEY='nuos_c6_ui_state_v2';
+let startupState={device_type:9,endpoint:1,endpoint_count:1};
+
+function loadUiState(){
+ try{
+   const x=JSON.parse(localStorage.getItem(UI_STATE_KEY)||'{}');
+   if(Number.isInteger(+x.device_type) && +x.device_type>=0 && +x.device_type<12) startupState.device_type=+x.device_type;
+   if(Number.isInteger(+x.endpoint) && +x.endpoint>=1 && +x.endpoint<=50) startupState.endpoint=+x.endpoint;
+   if(Number.isInteger(+x.endpoint_count) && +x.endpoint_count>=1 && +x.endpoint_count<=50) startupState.endpoint_count=+x.endpoint_count;
+ }catch(e){}
+}
+function saveUiState(extra={}){
+ try{
+   localStorage.setItem(UI_STATE_KEY,JSON.stringify({
+     device_type:+$('deviceType').value||startupState.device_type||9,
+     endpoint:+($('editEndpoint')?.value||startupState.endpoint||1),
+     endpoint_count:+savedEndpointCount||startupState.endpoint_count||1,
+     ...extra
+   }));
+ }catch(e){}
+}
+
+async function init(){
+ loadUiState();
+
+ try{
+   let names=await api('/api/device-types');
+   names.forEach((n,i)=>$('deviceType').add(new Option(n,i)));
+ }catch(e){
+   ['LT Panel / Panel MFM','DG','UPS','Lift','Escalator','Fire Hydrant','Anemometer','AC','Ventilation Fan','Custom','SLD','Lighting'].forEach((n,i)=>$('deviceType').add(new Option(n,i)));
+ }
+
+ for(let i=1;i<=50;i++)$('endpointCount').add(new Option(i,i));
+ populateEditorControls();
+ populateClusterSelect('clusterId');
+ populateClusterSelect('editClusterId');
+
+ // Never default to Custom just because the page was reloaded.
+ // The last selected module is retained in the browser and the saved
+ // endpoint configuration remains the authoritative source when available.
+ $('deviceType').value=String(startupState.device_type);
+ setClusterControl($('clusterId'), clusterForDevice(startupState.device_type, startupState.endpoint));
+
+ try{
+   const st=await api('/api/status');
+   savedEndpointCount=Math.max(1,Math.min(50,+(st.endpoint_count||startupState.endpoint_count||1)));
+   if(Number.isInteger(+st.device_type) && +st.device_type>=0 && +st.device_type<12){
+     startupState.device_type=+st.device_type;
+     $('deviceType').value=String(startupState.device_type);
+     setClusterControl($('clusterId'), st.cluster_id||clusterForDevice(startupState.device_type, startupState.endpoint));
+   }
+ }catch(e){
+   savedEndpointCount=Math.max(1,Math.min(50,+startupState.endpoint_count||1));
+ }
+ $('endpointCount').value=savedEndpointCount;
+ saveUiState({device_type:+$('deviceType').value,endpoint_count:savedEndpointCount});
+
+ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+   document.querySelectorAll('.tab,.tabcontent').forEach(x=>x.classList.remove('active'));
+   b.classList.add('active');$(b.dataset.tab).classList.add('active');
+ });
+ $('deviceType').onchange=()=>deviceChanged().catch(e=>console.warn('Device change failed',e));
+ $('endpointCount').onchange=()=>setEndpointCount().catch(e=>console.warn('Endpoint count failed',e));
+
+ try{await loadSerial()}catch(e){console.warn('Serial load failed',e)}
+
+ // Load the saved endpoint list and then restore the module/cluster from
+ // the first real saved endpoint. This fixes the post-reboot Custom default.
+ try{
+   await refreshEndpoints();
+ }catch(e){
+   $('endpointList').innerHTML='<div class="empty">Unable to load saved endpoints: '+esc(e.message||e)+'</div>';
+   console.warn('Endpoint list failed',e);
+ }
+
+ try{
+   const first=await api('/api/endpoint?ep='+startupState.endpoint);
+   if(first && first.enabled){
+     current=first;
+     $('deviceType').value=String(first.device_type);
+     setClusterControl($('clusterId'), first.cluster_id||clusterForDevice(first.device_type, first.endpoint));
+     startupState.device_type=+first.device_type;
+     startupState.endpoint=+first.endpoint;
+     saveUiState({device_type:+first.device_type,endpoint:+first.endpoint});
+   }
+ }catch(e){
+   // The saved list/fallback still provides the visible configuration.
+   console.warn('Startup endpoint restore failed',e);
+ }
+
+ try{await refreshModbusStatuses()}catch(e){console.warn('Modbus status load failed',e)}
+}
+
+function clusterForDevice(dt,ep=1){dt=+dt;ep=+ep||1;if(dt===2 && ep===2)return 0xFC31;return DEFAULT_CLUSTERS[dt]||0xFCE0}
+function hex16(v){return '0x'+((+v||0)&0xFFFF).toString(16).toUpperCase().padStart(4,'0')}
+function populateClusterSelect(id){
+ const el=$(id);if(!el)return;
+ /* The cluster is derived from the selected device. The control is kept as
+  * a one-item, read-only selector so unrelated clusters cannot be selected. */
+ const dtEl=$(id==='clusterId'?'deviceType':'editDeviceType');
+ const epEl=$(id==='clusterId'?'endpointCount':'editEndpoint');
+ const ep=+(epEl?.value||1);
+ setClusterControl(el,clusterForDevice(+(dtEl?.value||9),ep));
+}
+function setClusterControl(el,value){
+ if(!el)return;
+ const v=(+value||0)&0xFFFF;
+ const custom=$(el.id==='clusterId'?'clusterCustom':'editClusterCustom');
+ const known=CLUSTER_OPTIONS.find(([id])=>(+id&0xFFFF)===v && +id!==0xFFFF);
+ const label=known?known[1]:`CUSTOM • ${hex16(v)}`;
+ el.innerHTML='';
+ el.add(new Option(label,String(v)));
+ el.value=String(v);
+ el.disabled=true;
+ if(custom){
+   custom.style.display=known?'none':'block';
+   custom.value=known?'':hex16(v);
+   custom.onchange=()=>{const parsed=parseInt(custom.value||'0',0);if(Number.isFinite(parsed))el.options[0].text=`CUSTOM • ${hex16(parsed)}`;};
+ }
+}
+function getClusterControl(elId){
+ const el=$(elId);if(!el)return 0;
+ const custom=$(elId==='clusterId'?'clusterCustom':'editClusterCustom');
+ if(custom && custom.style.display!=='none')return (parseInt(custom.value||'0',0)||0)&0xFFFF;
+ return (+el.value||0)&0xFFFF;
+}
+function deviceChanged(){
+ const dt=+$('deviceType').value;
+ setClusterControl($('clusterId'),clusterForDevice(dt,1));
+ saveUiState({device_type:dt});
+}
+async function setEndpointCount(){
+ const requested=Math.max(1,Math.min(50,+$('endpointCount').value||1));
+ if(requested===savedEndpointCount){$('endpointCount').value=savedEndpointCount;return;}
+ const accepted=confirm('Current Enpoints Data will be deleted, Are you Sure to Continue?');
+ if(!accepted){$('endpointCount').value=savedEndpointCount;return;}
+ try{
+   await api('/api/endpoints/provision',{method:'POST',body:JSON.stringify({count:requested,device_type:+$('deviceType').value})});
+   savedEndpointCount=requested;
+   $('endpointCount').value=savedEndpointCount;
+   saveUiState({device_type:+$('deviceType').value,endpoint_count:savedEndpointCount,endpoint:1});
+   await refreshEndpoints();
+   await refreshModbusStatuses();
+ }catch(e){
+   $('endpointCount').value=savedEndpointCount;
+   alert('Endpoint Count update failed: '+e.message);
+ }
+}
+function populateEditorControls(){
+ const ep=$('editEndpoint'),dt=$('editDeviceType');
+ if(!ep||!dt)return;
+ ep.innerHTML='';dt.innerHTML='';
+ for(let i=1;i<=50;i++)ep.add(new Option(i,i));
+ Array.from($('deviceType').options).forEach(o=>dt.add(new Option(o.text,o.value)));
+ ep.onchange=()=>setClusterControl($('editClusterId'),clusterForDevice(+dt.value,+ep.value));
+ dt.onchange=()=>setClusterControl($('editClusterId'),clusterForDevice(+dt.value,+ep.value));
+}
+function syncEditorControls(){
+ if(!$('editEndpoint'))return;
+ $('editEndpoint').value=current.endpoint||1;
+ $('editDeviceType').value=current.device_type??9;
+ setClusterControl($('editClusterId'),current.cluster_id||clusterForDevice(+$('editDeviceType').value,+$('editEndpoint').value));
+}
+async function openEndpointEditor(ep){
+ try{
+  const applyToAll=confirm(`Edit Endpoint ${ep}: Should changes to matching attributes also be applied to the same attributes on all other saved endpoints?\n\nOK = Apply matching attribute changes to all endpoints\nCancel = Edit this endpoint only`);
+  $('editEndpoint').value=ep;
+  await loadEndpointFromEditor();
+  editContext={endpoint:+ep,original:JSON.parse(JSON.stringify(current)),applyToAll};
+  $('endpointEditorTitle').textContent='Edit Endpoint '+ep;
+  $('saveMsg').textContent=applyToAll?'Changes to matching attributes will also be applied to other saved endpoints.':'Changes will affect this endpoint only.';
+  $('endpointEditor').classList.add('open');
+ }catch(e){alert('Unable to load endpoint '+ep+': '+e.message)}
+}
+function closeEndpointEditor(){$('endpointEditor').classList.remove('open');editContext=null}
+async function loadSavedFromEditor(){await loadEndpointFromEditor();if(editContext)editContext.original=JSON.parse(JSON.stringify(current));}
+async function loadTemplateFromEditor(){
+ setClusterControl($('editClusterId'),clusterForDevice(+$('editDeviceType').value,+$('editEndpoint').value));
+ await loadTemplateFromCurrentEditor();
+}
+
+async function loadSerial(){let c=await api('/api/serial');$('baud').value=c.baud_rate;$('dataBits').value=c.data_bits;$('stopBits').value=c.stop_bits;$('parity').value=c.parity}
+async function saveSerial(){await api('/api/serial',{method:'POST',body:JSON.stringify({baud_rate:+$('baud').value,data_bits:+$('dataBits').value,stop_bits:+$('stopBits').value,parity:+$('parity').value})});alert('Serial settings saved and applied.')}
+async function loadEndpointFromEditor(){
+ current=await api('/api/endpoint?ep='+$('editEndpoint').value);
+ current.attributes.forEach(normalizeRegCount);
+ syncEditorControls();
+ renderAttrs();
+}
+async function loadTemplateFromCurrentEditor(){
+ const ep=+$('editEndpoint').value;
+ const dt=+$('editDeviceType').value;
+ const x=await api('/api/template',{method:'POST',body:JSON.stringify({endpoint:ep,device_type:dt})});
+ current=x;
+ current.attributes.forEach(normalizeRegCount);
+ syncEditorControls();
+ renderAttrs();
+ await refreshEndpoints();
+ await refreshModbusStatuses();
+}
+function referenceForFunction(fn,address){fn=+fn;address=+address||0;if([3,6,16].includes(fn))return 40001+address;if(fn===4)return 30001+address;if(fn===2)return 10001+address;return 1+address}
+function pduFromReference(fn,ref){fn=+fn;ref=+ref||0;if([3,6,16].includes(fn)&&ref>=40001&&ref<=49999)return ref-40001;if(fn===4&&ref>=30001&&ref<=39999)return ref-30001;if(fn===2&&ref>=10001&&ref<=19999)return ref-10001;if(ref>=1)return ref-1;return 0}
+function functionReferenceHint(fn){fn=+fn;if([3,6,16].includes(fn))return '40001–49999';if(fn===4)return '30001–39999';if(fn===2)return '10001–19999';return '1–9999'}
+function attrObj(){return {enabled:true,attribute_id:0,function:4,address:0,address2:0,address3:0,reference:30001,reg_count:1,data_type:1,word_order:0,packed_count:0,name:'Attribute'}}
+function normalizeRegCount(a){if(!a.reg_count||a.reg_count<1)a.reg_count=1}
+function addAttr(){if(current.attributes.length>=MAX_ATTRIBUTES_PER_ENDPOINT){alert('Maximum 64 configured attributes per endpoint.');return}current.attributes.push(attrObj());renumber();renderAttrs()}
+function renumber(){current.attributes.forEach((a,i)=>a.attribute_id=i)}
+function renderAttrs(){let box=$('attrs');box.innerHTML='';if(!current.attributes.length){box.innerHTML='<div class="empty">No attributes configured. Load a device template, import a CSV file or add one manually.</div>';return}current.attributes.forEach((a,i)=>{if(a.reference==null)a.reference=referenceForFunction(a.function,a.address);let d=document.createElement('div');d.className='attr';d.innerHTML=`<div class="attrgrid"><div><label>ID</label><input data-k="attribute_id" value="${a.attribute_id}" type="number" min="0" max="255"></div><div><label>Name</label><input data-k="name" value="${esc(a.name||'Attribute')}"></div><div><label>Function</label><select data-k="function">${functions.map(x=>`<option value="${x[0]}" ${x[0]==a.function?'selected':''}>${x[1]}</option>`).join('')}</select></div><div><label>Modbus Reference (datasheet)</label><input data-k="reference" value="${a.reference}" type="number" min="1" max="49999"><div class="muted">Expected: ${functionReferenceHint(a.function)}</div></div><div><label>Register / Bit Count</label><div class="muted">For phase parameters, use one row per register (R/Y/B); save each row with count = 1.</div><input data-k="reg_count" value="${a.reg_count||1}" type="number" min="1" max="125"></div><div><label>Data Type</label><select data-k="data_type">${types.map(x=>`<option value="${x[0]}" ${x[0]==a.data_type?'selected':''}>${x[1]}</option>`).join('')}</select></div><div><label>Packed Count</label><input data-k="packed_count" value="${a.packed_count||0}" type="number" min="0" max="3"></div><div><label>Address 2</label><input data-k="address2" value="${a.address2||''}" type="number"></div><div><label>Address 3</label><input data-k="address3" value="${a.address3||''}" type="number"></div></div><div class="actions"><label style="display:flex;gap:8px;align-items:center;margin:0"><input data-k="enabled" type="checkbox" ${a.enabled?'checked':''} style="width:auto"> Enabled</label><button class="danger" onclick="removeAttr(${i})">Delete Attribute</button></div>`;d.querySelectorAll('[data-k]').forEach(el=>{el.oninput=el.onchange=()=>{let k=el.dataset.k;if(k==='function'){let oldPdu=+a.address||pduFromReference(a.function,a.reference);a.function=+el.value;a.address=oldPdu;a.reference=referenceForFunction(a.function,oldPdu);let refEl=d.querySelector('[data-k="reference"]');if(refEl)refEl.value=a.reference;let hint=refEl?.parentElement?.querySelector('.muted');if(hint)hint.textContent='Expected: '+functionReferenceHint(a.function);return}if(k==='reference'){current.attributes[i].reference=+el.value||0;current.attributes[i].address=pduFromReference(a.function,a.reference);return}current.attributes[i][k]=el.type==='checkbox'?el.checked:(k==='name'?el.value:+el.value)}});box.appendChild(d)})}
+function removeAttr(i){current.attributes.splice(i,1);renumber();renderAttrs()}
+const PROPAGATED_ATTRIBUTE_FIELDS=['enabled','name','function','address','reference','reg_count','data_type','word_order','packed_count','address2','address3'];
+function getChangedAttributeEdits(before,after){
+ const edits=[];
+ for(const oldAttr of before||[]){
+  let newAttr=(after||[]).find(a=>Number(a.attribute_id)===Number(oldAttr.attribute_id)&&String(a.name||'')===String(oldAttr.name||''));
+  if(!newAttr)newAttr=(after||[]).find(a=>String(a.name||'').trim().toLowerCase()===String(oldAttr.name||'').trim().toLowerCase());
+  if(!newAttr)continue; // Added/deleted attributes remain local to the edited endpoint.
+  const fields=PROPAGATED_ATTRIBUTE_FIELDS.filter(k=>JSON.stringify(oldAttr[k]??null)!==JSON.stringify(newAttr[k]??null));
+  if(fields.length)edits.push({before:oldAttr,after:newAttr,fields});
+ }
+ return edits;
+}
+async function propagateMatchingAttributeEdits(sourceEndpoint,before,after){
+ const edits=getChangedAttributeEdits(before,after);
+ if(!edits.length)return 0;
+ const endpointList=await api('/api/endpoints');
+ let updated=0;
+ for(const item of endpointList){
+  if(+item.endpoint===+sourceEndpoint)continue;
+  const target=await api('/api/endpoint?ep='+item.endpoint);
+  let changed=false;
+  for(const edit of edits){
+   const old=edit.before;
+   let match=(target.attributes||[]).find(a=>Number(a.attribute_id)===Number(old.attribute_id)&&String(a.name||'')===String(old.name||''));
+   if(!match)match=(target.attributes||[]).find(a=>String(a.name||'').trim().toLowerCase()===String(old.name||'').trim().toLowerCase());
+   if(!match)match=(target.attributes||[]).find(a=>Number(a.attribute_id)===Number(old.attribute_id));
+   if(!match)continue;
+   for(const field of edit.fields)match[field]=edit.after[field];
+   changed=true;
+  }
+  if(changed){await api('/api/endpoint',{method:'POST',body:JSON.stringify(target)});updated++;}
+ }
+ return updated;
+}
+async function saveEndpointFromEditor(){
+ renumber();
+ current.endpoint=+$('editEndpoint').value;
+ current.slave_id=current.endpoint;
+ current.device_type=+$('editDeviceType').value;
+ current.cluster_id=getClusterControl('editClusterId')||clusterForDevice(current.device_type,current.endpoint);
+ current.enabled=true;
+ saveUiState({device_type:current.device_type,endpoint:current.endpoint,endpoint_count:savedEndpointCount});
+ for(const a of current.attributes){a.reference=+a.reference||0;a.address=pduFromReference(a.function,a.reference);if(a.enabled!==false&&!a.reference){alert('Every enabled attribute needs a Modbus reference. Disabled template placeholders may remain unassigned.');return}}
+ try{
+  await api('/api/endpoint',{method:'POST',body:JSON.stringify(current)});
+  let propagated=0;
+  if(editContext&&editContext.endpoint===current.endpoint&&editContext.applyToAll){
+   propagated=await propagateMatchingAttributeEdits(current.endpoint,editContext.original.attributes||[],current.attributes||[]);
+  }
+  $('saveMsg').textContent=propagated?`Saved. Matching attribute changes were also applied to ${propagated} other endpoint(s).`:'Saved successfully.';
+  editContext=null;
+  await refreshEndpoints();await refreshModbusStatuses();closeEndpointEditor();
+ }catch(e){$('saveMsg').textContent='Save failed: '+e.message}
+}
+async function deleteEndpointFromEditor(){
+ const ep=+$('editEndpoint').value;
+ if(!confirm('Delete endpoint '+ep+'?'))return;
+ await api('/api/endpoint?ep='+ep,{method:'DELETE'});
+ current={endpoint:ep,enabled:false,device_type:9,cluster_id:0,attributes:[]};
+ await refreshEndpoints();
+ await refreshModbusStatuses();
+ closeEndpointEditor();
+}
+function toggleEndpointStatus(ep){
+ const d=$('rtu-details-'+ep);
+ if(d)d.classList.toggle('open');
+}
+function modbusStatusFor(ep){return modbusStatusCache[String(ep)]||null}
+function renderModbusStatusCard(ep){
+ const st=modbusStatusFor(ep);
+ const card=document.querySelector('.ep-card[data-ep="'+ep+'"]');
+ if(!card)return;
+ const btn=card.querySelector('.status-btn');
+ const msg=card.querySelector('.rtu-message');
+ const details=card.querySelector('.rtu-details');
+ card.classList.remove('modbus-error','modbus-ok');
+ if(!st){
+   btn.className='status-btn pending';
+   btn.textContent='Status: —';
+   msg.textContent='No Modbus RTU communication received yet.';
+   details.innerHTML='';
+   return;
+ }
+ if(st.status==='error'){
+   card.classList.add('modbus-error');
+   btn.className='status-btn error';
+   btn.textContent='Status: ERROR';
+ }else if(st.status==='ok'){
+   btn.className='status-btn ok';
+   btn.textContent='Status: OK';
+ }else{
+   btn.className='status-btn pending';
+   btn.textContent='Status: —';
+ }
+ msg.textContent=st.message||'';
+ const rows=(st.registers||[]).map(r=>{
+   const base=(r.function===4)?30001:((r.function===2)?10001:40001);
+   let reg=String(r.reference);
+   if(r.packed_count>1){
+      if(r.address2!=null)reg+=' / '+String(base+r.address2);
+      if(r.address3!=null)reg+=' / '+String(base+r.address3);
+   }
+   if(r.ok)return `<tr><td>${r.attribute_id}</td><td>${reg}</td><td>FC${r.function}</td><td class="rtu-ok">${esc(r.data_hex||String(r.data))}</td></tr>`;
+   return `<tr><td>${r.attribute_id}</td><td>${reg}</td><td>FC${r.function}</td><td class="rtu-error">${esc(r.error||'Read error')}</td></tr>`;
+ }).join('');
+ details.innerHTML=`<table class="rtu-table"><thead><tr><th>Attr</th><th>Modbus Register</th><th>FC</th><th>Data / Error</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No configured Modbus registers.</td></tr>'}</tbody></table>`;
+}
+async function refreshModbusStatuses(){
+ try{
+   const r=await api('/api/modbus-status');
+   modbusStatusCache={};
+   for(const st of (r.endpoints||[]))modbusStatusCache[String(st.endpoint)]=st;
+   document.querySelectorAll('.ep-card[data-ep]').forEach(card=>renderModbusStatusCard(+card.dataset.ep));
+ }catch(e){console.warn('Modbus status refresh failed',e)}
+}
+async function refreshEndpoints(){
+ let a;
+ try{
+   a=await api('/api/endpoints');
+ }catch(primaryErr){
+   // Compatibility fallback for firmware builds that do not expose the
+   // aggregate endpoint-list API. Individual endpoint GET is the source
+   // of truth and survives reboot because the configuration is in NVS.
+   a=[];
+   const count=Math.max(1,Math.min(50,+savedEndpointCount||1));
+   let lastErr=primaryErr;
+   for(let ep=1;ep<=count;ep++){
+     try{
+       const x=await api('/api/endpoint?ep='+ep);
+       if(x && (x.enabled || (x.attributes||[]).length)){
+         a.push({
+           endpoint:ep,
+           enabled:!!x.enabled,
+           device_type:+x.device_type||9,
+           cluster_id:+x.cluster_id||0,
+           device_name:x.device_name||'Custom',
+           attribute_count:(x.attributes||[]).length
+         });
+       }
+     }catch(e){lastErr=e;}
+   }
+   if(!a.length && lastErr && count===1) throw primaryErr;
+ }
+ $('endpointList').innerHTML=a.length?a.map(x=>`<div class="ep-card" data-ep="${x.endpoint}">
+   <span class="badge">EP ${x.endpoint} • Slave ${x.endpoint}</span>
+   <h4 style="margin:8px 0 4px">${esc(x.device_name)}</h4>
+   <span class="muted">${x.attribute_count} attributes</span>
+   <div class="ep-status-row"><span class="rtu-message">Checking Modbus RTU…</span><button class="secondary status-btn pending" onclick="toggleEndpointStatus(${x.endpoint})">Status: …</button></div>
+   <div class="rtu-details" id="rtu-details-${x.endpoint}"></div>
+   <div class="ep-actions"><button class="secondary" onclick="openEndpointEditor(${x.endpoint})">Edit</button><button class="danger" onclick="deleteSpecific(${x.endpoint})">Delete</button></div>
+ </div>`).join(''):'<div class="empty">No saved endpoints.</div>';
+ document.querySelectorAll('.ep-card[data-ep]').forEach(card=>renderModbusStatusCard(+card.dataset.ep));
+
+ // Restore the top-level module selector from a real saved endpoint.
+ const first=a[0];
+ if(first){
+   $('deviceType').value=String(first.device_type);
+   setClusterControl($('clusterId'), first.cluster_id||clusterForDevice(first.device_type, first.endpoint));
+   startupState.device_type=+first.device_type;
+   startupState.endpoint=+first.endpoint;
+   saveUiState({device_type:+first.device_type,endpoint:+first.endpoint});
+ }
+}
+async function deleteSpecific(ep){
+ if(!confirm('Delete endpoint '+ep+'?'))return;
+ await api('/api/endpoint?ep='+ep,{method:'DELETE'});
+ delete modbusStatusCache[String(ep)];
+ await refreshEndpoints();
+}
+async function status(){
+ try{
+   let st=await api('/api/status');
+   $('h2status').textContent='H2: '+(st.h2_joined?'joined':'not joined');
+   $('h2status').className='status '+(st.h2_joined?'ok':'');
+   if(st.endpoint_count && +st.endpoint_count!==savedEndpointCount){
+      savedEndpointCount=Math.max(1,Math.min(50,+st.endpoint_count));
+      $('endpointCount').value=savedEndpointCount;
+      saveUiState({endpoint_count:savedEndpointCount});
+   }
+ }catch(e){$('h2status').textContent='H2: offline'}
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+/* ---------------- CSV / Excel-compatible configuration ---------------- */
+const CSV_HEADERS=['format','version','endpoint','slave_id','enabled','device_type','device_name','cluster_id','attribute_enabled','attribute_id','function','address','reference','reg_count','data_type','word_order','packed_count','address2','address3','name'];
+function csvEscape(v){v=v==null?'':String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function csvLine(row){return CSV_HEADERS.map(h=>csvEscape(row[h])).join(',')}
+function makeRows(cfg){
+ const rows=[];const attrs=cfg.attributes||[];
+ if(!attrs.length){rows.push({format:'NUOS-BMS-Modbus-Configuration',version:1,endpoint:cfg.endpoint,slave_id:cfg.slave_id||cfg.endpoint,enabled:cfg.enabled!==false,device_type:cfg.device_type,device_name:cfg.device_name||'',cluster_id:cfg.cluster_id||'0xFCE0',attribute_enabled:'',attribute_id:'',function:'',address:'',reference:'',reg_count:'',data_type:'',word_order:'',packed_count:'',address2:'',address3:'',name:''});return rows}
+ attrs.forEach((a,i)=>rows.push({
+  format:'NUOS-BMS-Modbus-Configuration',version:1,endpoint:cfg.endpoint,
+  slave_id:cfg.slave_id||cfg.endpoint,enabled:cfg.enabled!==false,
+  device_type:cfg.device_type,device_name:cfg.device_name||'',cluster_id:cfg.cluster_id||'0xFCE0',
+  /* Always export the per-attribute flag explicitly; FALSE must survive Excel/CSV round trips. */
+  attribute_enabled:a.enabled===false?'FALSE':'TRUE',
+  attribute_id:a.attribute_id!=null?a.attribute_id:i,function:a.function,
+  address:a.address!=null?a.address:pduFromReference(a.function,a.reference),
+  reference:a.reference||referenceForFunction(a.function,a.address),
+  reg_count:a.reg_count||1,data_type:a.data_type,word_order:a.word_order||0,
+  packed_count:a.packed_count||0,address2:a.address2||'',address3:a.address3||'',name:a.name||''
+ }));
+ return rows;
+}
+function downloadBlob(name,text){let blob=new Blob([text],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function downloadCurrentCSV(){let rows=makeRows(current);downloadBlob(`nuos_ep${current.endpoint||1}_modbus_config.csv`,CSV_HEADERS.join(',')+'\n'+rows.map(csvLine).join('\n')+'\n')}
+async function downloadAllCSV(){try{let list=await api('/api/endpoints');let rows=[];for(const x of list){try{let cfg=await api('/api/endpoint?ep='+x.endpoint);rows.push(...makeRows(cfg))}catch(e){}}if(!rows.length){alert('No saved endpoint configurations found.');return}downloadBlob('NUOS_ALL_DEVICE_CONFIGURATIONS.csv',CSV_HEADERS.join(',')+'\n'+rows.map(csvLine).join('\n')+'\n')}catch(e){alert('CSV export failed: '+e.message)}}
+function parseCSV(text){let rows=[],row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){let c=text[i],n=text[i+1];if(quoted){if(c==='"'&&n==='"'){cell+='"';i++}else if(c==='"'){quoted=false}else cell+=c}else{if(c==='"')quoted=true;else if(c===','){row.push(cell);cell=''}else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell=''}else if(c==='\r'){if(n==='\n'){}else{row.push(cell);rows.push(row);row=[];cell=''}}else cell+=c}}if(cell!==''||row.length){row.push(cell);rows.push(row)}return rows.filter(r=>r.some(v=>String(v).trim()!==''))}
+function normHeader(s){return String(s||'').trim().toLowerCase().replace(/\s+/g,'_')}
+function boolVal(v,def=true){let s=String(v??'').trim().toLowerCase();if(!s)return def;return !['0','false','no','off','disabled'].includes(s)}
+function parseType(v){let s=String(v??'').trim().toUpperCase();if(s==='')return 1;if(/^\d+$/.test(s))return +s;return typeByName[s.replace(/\s*\(.*/, '')] ?? typeByName[s] ?? 1}
+function parseFunction(v){let s=String(v??'').trim().toUpperCase();let m=s.match(/(?:FC|FUNCTION|FUNC|0*?)(0*\d+)/);if(m)return +m[1];if(/^\d+$/.test(s))return +s;return 4}
+function num(v,d=0){let n=Number(String(v??'').trim());return Number.isFinite(n)?n:d}
+function parseImportedRows(text){let matrix=parseCSV(text);if(!matrix.length)throw Error('CSV file is empty.');let h=matrix[0].map(normHeader),idx={};h.forEach((x,i)=>idx[x]=i);if(idx.endpoint==null)throw Error('CSV must contain an endpoint column.');let groups=new Map();for(let r=1;r<matrix.length;r++){let row=matrix[r],get=k=>idx[k]==null?'':row[idx[k]]??'';let ep=num(get('endpoint'),0);if(ep<1||ep>50)continue;if(!groups.has(ep))groups.set(ep,{endpoint:ep,slave_id:num(get('slave_id'),ep),enabled:boolVal(get('enabled'),true),device_type:num(get('device_type'),9),device_name:get('device_name'),cluster_id:get('cluster_id')||'0xFCE0',attributes:[]});let g=groups.get(ep);let attrId=get('attribute_id');if(attrId==='')continue;let fn=parseFunction(get('function'));let ref=num(get('reference'),0);let address=num(get('address'),pduFromReference(fn,ref));if(!ref)ref=referenceForFunction(fn,address);let rc=Math.max(1,num(get('reg_count'),1));let dt=parseType(get('data_type'));let packedCount=num(get('packed_count'),0); if(!Number.isInteger(packedCount)||packedCount<0||packedCount>3)throw Error(`Endpoint ${ep} attribute ${attrId}: packed_count must be integer 0..3 (CSV value: ${get('packed_count')}).`);let address2=num(get('address2'),0);let address3=num(get('address3'),0);let baseName=get('name')||('Attribute '+attrId);if(packedCount>=2){if(packedCount>3)throw Error(`Endpoint ${ep} attribute ${attrId}: packed_count must be 2 or 3.`);if(dt!==12)throw Error(`Endpoint ${ep} attribute ${attrId}: packed groups must use UINT48 (12).`);g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:g.attributes.length,function:fn,address:address,address2:address2,address3:address3,reference:ref,reg_count:1,data_type:dt,packed_count:packedCount,name:baseName});continue;}if(rc>1 && [9,10,11,12].includes(dt)){let suffix=rc===3?['R','Y','B']:Array.from({length:rc},(_,k)=>String(k+1));for(let k=0;k<rc;k++){let ar=address+k;g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:g.attributes.length,function:fn,address:ar,reference:referenceForFunction(fn,ar),reg_count:1,data_type:dt,packed_count:0,address2:0,address3:0,name:baseName+' '+suffix[k]});}}else{g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:num(attrId,g.attributes.length),function:fn,address:address,reference:ref,reg_count:1,data_type:dt,packed_count:0,address2:0,address3:0,name:baseName});}}return [...groups.values()]}
+async function importCSVFile(ev){
+ let file=ev.target.files?.[0];
+ ev.target.value='';
+ if(!file)return;
+ try{
+  let text=await file.text();
+  let groups=parseImportedRows(text);
+  if(!groups.length)throw Error('No valid endpoint rows found in CSV.');
+
+  let count=0;
+  for(const cfg of groups){
+   const totalCount=cfg.attributes.length;
+   if(totalCount>MAX_ATTRIBUTES_PER_ENDPOINT) throw Error(`Endpoint ${cfg.endpoint} has ${totalCount} attributes; H2/C6 limit is 64.`);
+   const enabledCount=cfg.attributes.filter(a=>a.enabled!==false).length;
+
+
+   const postCfg={
+    endpoint:cfg.endpoint,
+    slave_id:cfg.slave_id,
+    enabled:cfg.enabled,
+    device_type:cfg.device_type,
+    cluster_id:num(cfg.cluster_id,0),
+    attributes:cfg.attributes.map((a,i)=>({
+     enabled:a.enabled!==false,
+     attribute_id:i,
+     function:+a.function,
+     address:+a.address,
+     reference:+a.reference,
+     reg_count:+(a.reg_count||1),
+     data_type:+a.data_type,
+     word_order:+(a.word_order||0),
+     packed_count:Number.isInteger(+a.packed_count)?+a.packed_count:0,
+     address2:+(a.address2||0),
+     address3:+(a.address3||0),
+     name:a.name||('Attribute '+i)
+    }))
+   };
+
+   await api('/api/endpoint',{
+    method:'POST',
+    body:JSON.stringify(postCfg)
+   });
+   count++;
+  }
+
+  let selected=groups[0];
+  $('editEndpoint').value=selected.endpoint;
+  await loadEndpointFromEditor();
+  await refreshEndpoints();
+  await refreshModbusStatuses();
+  alert(`CSV import complete. ${count} endpoint(s) saved to flash and applied to the C6/H2 configuration.`);
+ }catch(e){
+  alert('CSV import failed: '+e.message);
+ }
+}
+$('endpointEditor').addEventListener('click',e=>{if(e.target.id==='endpointEditor')closeEndpointEditor()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeEndpointEditor()});status();setInterval(status,3000);init();
+</script></body></html>

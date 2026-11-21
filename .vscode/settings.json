@@ -8,5 +8,6 @@
     "--compile-commands-dir=c:\\esp\\esp-zigbee-sdk\\examples\\esp_zigbee_HA_sample\\NUOS_BMS_ZB_Module\\build"
   ],
   "idf.portWin": "COM7",
-  "idf.flashType": "UART"
+  "idf.flashType": "UART",
+  "idf.port": "COM7"
 }

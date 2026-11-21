@@ -1,0 +1,10 @@
+## IDF Component Manager Manifest File
+## Section 2 (ESP32-H2): Zigbee only. esp-modbus is gone - the Modbus master
+## now lives on the ESP32-C6 board.
+dependencies:
+  espressif/esp-zboss-lib:
+    version: 1.*
+  espressif/esp-zigbee-lib: ~1.6.7
+  ## Required IDF version
+  idf:
+    version: '>=5.0.0'

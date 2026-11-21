@@ -1,31 +1,17 @@
-#
-# Partition Table
-#
-CONFIG_PARTITION_TABLE_CUSTOM=y
-CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
-CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
-CONFIG_PARTITION_TABLE_OFFSET=0x8000
-CONFIG_PARTITION_TABLE_MD5=y
-# end of Partition Table
+# NUOS BMS - ESP32-C6 Modbus board
 
-#
-# mbedTLS
-#
-CONFIG_MBEDTLS_HARDWARE_AES=n
-CONFIG_MBEDTLS_HARDWARE_MPI=n
-CONFIG_MBEDTLS_HARDWARE_SHA=n
-CONFIG_MBEDTLS_CMAC_C=y
-CONFIG_MBEDTLS_SSL_PROTO_DTLS=y
-CONFIG_MBEDTLS_KEY_EXCHANGE_ECJPAKE=y
-# end of TLS Key Exchange Methods
+# ---------------------------------------------------------------------------
+# CRITICAL: free UART0 for the link to the ESP32-H2.
+# The console moves to USB-Serial-JTAG, so ESP_LOG output no longer collides
+# with the frames on UART0. Flash and monitor over the USB port.
+# ---------------------------------------------------------------------------
+# CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_ESP_CONSOLE_SECONDARY_NONE=y
 
-CONFIG_MBEDTLS_ECJPAKE_C=y
-# end of mbedTLS
+# 1 ms tick keeps the 10 ms inter-endpoint delay honest.
+CONFIG_FREERTOS_HZ=1000
 
-#
-# Zboss
-#
-CONFIG_ZB_ENABLED=y
-CONFIG_ZB_ZED=y
-# end of Zboss
-# end of Component config
+# The Modbus task blocks on UART reads for up to 1 s per endpoint.
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=10
+
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y

@@ -1,0 +1,12 @@
+format,version,endpoint,slave_id,enabled,device_type,device_name,cluster_id,attribute_enabled,attribute_id,function,address,reference,reg_count,data_type,word_order,packed_count,address2,address3,name
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,0,3,1068,41069,1,12,0,3,1070,1072,Mains2 Line Voltage RMS R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,1,3,1062,41063,1,12,0,3,1064,1066,Mains Line Voltage RMS R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,2,3,1078,41079,1,12,0,3,1080,1082,Mains Current RMS R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,3,3,1040,41041,1,12,0,3,1042,1044,Generator2 Line Voltage RMS R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,4,3,1034,41035,1,12,0,3,1036,1038,Generator Line Voltage RMS R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,5,3,1046,41047,1,12,0,3,1048,1050,Generator Current RMS R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,6,3,1085,41086,1,12,0,3,1087,1089,Mains Load Watts R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,7,3,1054,41055,1,12,0,3,1056,1058,Generator Load Watts R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,8,3,1555,41556,1,12,0,3,1556,1557,Generator Power R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,9,3,1547,41548,1,12,0,3,1549,1551,Generator Var R/Y/B
+NUOS-BMS-Csv-Packed-16bit,3,1,1,True,1,DG,0xFCE0,True,10,3,1801,41802,1,12,0,3,1805,1807,Generator Positive kWh/kVAh/kVArh
