@@ -190,4 +190,5 @@ especially around the APSDE struct names, which move between esp-zigbee-sdk
 releases (`NUOS_APSDE_REQUEST` at the top of `app_zigbee_clusters.c` is the
 knob for that).
 #   N U O S _ B M S _ M O D B U S  
+ #   N U O S _ B M S _ M O D B U S  
  
