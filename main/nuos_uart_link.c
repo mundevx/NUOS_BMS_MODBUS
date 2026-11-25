@@ -36,6 +36,7 @@ static nuos_link_parser_t s_parser;
 static uint32_t s_tx_count, s_ack_ok, s_ack_to;
 static int64_t s_last_config_send_us;
 static bool s_config_sync_busy;
+static volatile bool s_h2_factory_reset_pending;
 
 static uint32_t get_u32_le(const uint8_t *p)
 {
@@ -334,7 +335,9 @@ static void handle(const nuos_link_frame_t *f)
         xSemaphoreGive(s_ack);
     } else if (f->type == NUOS_LINK_TYPE_STATUS) {
         s_h2_status_seen = true;
-        s_joined = f->len && (f->payload[0] & NUOS_LINK_FLAG_ZB_JOINED);
+        bool joined_now = f->len && (f->payload[0] & NUOS_LINK_FLAG_ZB_JOINED);
+        if (!joined_now) s_h2_factory_reset_pending = false;
+        s_joined = joined_now && !s_h2_factory_reset_pending;
         if (f->len >= 5) {
             s_h2_config_hash = get_u32_le(&f->payload[1]);
         } else {
@@ -493,4 +496,37 @@ void nuos_link_log_stats(void)
              (unsigned long)s_ack_to, (unsigned long)s_parser.crc_errors,
              (unsigned long)s_parser.resyncs, s_joined,
              (unsigned long)s_h2_config_hash);
+}
+
+
+esp_err_t nuos_link_factory_reset_h2(void)
+{
+    if (!s_joined || s_last < 0 ||
+        ((esp_timer_get_time() - s_last) / 1000) > 5000) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    if (xSemaphoreTake(s_ack_tx, pdMS_TO_TICKS(2000)) != pdTRUE) {
+        return ESP_ERR_TIMEOUT;
+    }
+
+    esp_err_t result = ESP_ERR_INVALID_STATE;
+    if (s_joined && s_last >= 0 &&
+        ((esp_timer_get_time() - s_last) / 1000) <= 5000) {
+        uint8_t seq = s_seq++;
+        (void)xSemaphoreTake(s_ack, 0);
+        s_h2_factory_reset_pending = true;
+        ESP_LOGW(TAG, "H2 FACTORY RESET TX seq=%u", seq);
+        result = write_frame(NUOS_LINK_TYPE_FACTORY_RESET, 0, NULL, 0, seq);
+        if (result == ESP_OK) result = wait_ack(seq);
+        if (result == ESP_OK) {
+            s_joined = false;
+            ESP_LOGW(TAG, "H2 accepted factory reset; waiting for reboot/rejoin");
+        } else {
+            s_h2_factory_reset_pending = false;
+            ESP_LOGE(TAG, "H2 factory reset request failed: %s",
+                     esp_err_to_name(result));
+        }
+    }
+    xSemaphoreGive(s_ack_tx);
+    return result;
 }

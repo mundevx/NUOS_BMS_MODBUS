@@ -6,6 +6,7 @@
 #include "nuos_link_proto.h"
 esp_err_t nuos_link_init(void);
 esp_err_t nuos_link_send_generic(uint8_t endpoint,const uint8_t *payload,uint16_t len);
+esp_err_t nuos_link_factory_reset_h2(void);
 esp_err_t nuos_link_ping(void);
 bool nuos_link_peer_joined(void);
 uint32_t nuos_link_peer_silent_ms(void);

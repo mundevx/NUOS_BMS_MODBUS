@@ -7,13 +7,13 @@
  * Modbus -> H2 test modes. Select one before building:
  *   1 = read all configured endpoints first, then send changed endpoint
  *       frames consecutively over NUOS Link.
- *   2 = read one endpoint completely, send its changed attributes, then
- *       continue to the next endpoint.
+ *   2 = read one endpoint completely and immediately forward changed values
+ *       to H2 before polling the next endpoint (default low-latency mode).
  */
 #define MODBUS_SEND_MODE_ALL_ENDPOINTS_BATCH  1
 #define MODBUS_SEND_MODE_PER_ENDPOINT        2
 #ifndef MODBUS_DATA_SEND_MODE
-#define MODBUS_DATA_SEND_MODE MODBUS_SEND_MODE_ALL_ENDPOINTS_BATCH
+#define MODBUS_DATA_SEND_MODE MODBUS_SEND_MODE_PER_ENDPOINT
 #endif
 
 #if (MODBUS_DATA_SEND_MODE != MODBUS_SEND_MODE_ALL_ENDPOINTS_BATCH) && \

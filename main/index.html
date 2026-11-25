@@ -9,18 +9,27 @@
 header{background:#101827;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}header h1{margin:0;font-size:20px}header small{color:#aeb9ca}
 .container{max-width:1200px;margin:24px auto;padding:0 16px}.top{display:grid;grid-template-columns:220px 1fr 250px;gap:12px;align-items:end}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 3px 14px #18243a0a}
 label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px}input,select,button,textarea{font:inherit}input,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink)}button{border:0;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:700}.primary{background:var(--accent);color:#fff}.secondary{background:#e9eef6;color:var(--ink)}.danger{background:#feecec;color:var(--danger)}.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -18px 18px;padding:0 18px}.tab{background:none;color:var(--muted);border-radius:0;padding:12px 18px;border-bottom:3px solid transparent}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}.tabcontent{display:none}.tabcontent.active{display:block}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.attr{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fbfcfe}.attrgrid{display:grid;grid-template-columns:70px 1.4fr 1fr 1fr 100px 120px 90px;gap:8px;align-items:end}.attrgrid .wide{grid-column:span 1}.muted{color:var(--muted);font-size:12px}.endpoint-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.ep-card{padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#fff}.ep-card:hover{border-color:var(--accent)}.badge{display:inline-block;padding:3px 7px;border-radius:20px;background:#edf3ff;color:var(--accent);font-size:11px;font-weight:700}.status{font-size:12px;padding:7px 10px;border-radius:20px;background:#edf1f5;color:var(--muted)}.ok{color:var(--ok)}.notice{background:#fff8e1;border:1px solid #f1df9d;border-radius:10px;padding:12px;font-size:13px;margin-bottom:12px}.mqtt-disabled{opacity:.7}.actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}.fileinput{display:none}.csvbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.csvbar input[type=file]{display:none}.csvhelp{font-size:12px;color:var(--muted);margin-top:8px}.modal{display:none;position:fixed;inset:0;background:#0b122099;z-index:1000;padding:24px;overflow:auto}.modal.open{display:flex;align-items:flex-start;justify-content:center}.modal-card{width:min(1100px,100%);background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:0 20px 60px #0004;padding:20px;margin:20px auto}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.modal-head h2{margin:0}.modal-close{background:#e9eef6;color:var(--ink);font-size:20px;padding:6px 11px}.edit-meta{display:grid;grid-template-columns:180px 1fr 250px;gap:12px;margin-bottom:14px}.modal-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:16px}.ep-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.ep-actions button{padding:7px 12px}.ep-card{cursor:default;transition:background .15s,border-color .15s,box-shadow .15s}.ep-card.modbus-error{background:#fff1f1;border-color:#e53935;box-shadow:0 0 0 1px #e5393522}.ep-card.modbus-ok{background:#fff}.ep-status-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}.status-btn{padding:7px 11px}.status-btn.ok{background:#e8f7ee;color:#176b3d}.status-btn.error{background:#fee2e2;color:#b42318}.status-btn.pending{background:#eef2f7;color:#687386}.rtu-details{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}.rtu-details.open{display:block}.rtu-table{width:100%;border-collapse:collapse;font-size:11px}.rtu-table th,.rtu-table td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.rtu-table th{color:var(--muted)}.rtu-ok{color:var(--ok);font-weight:700}.rtu-error{color:var(--danger);font-weight:700}.rtu-message{font-size:12px;margin:6px 0}
-@media(max-width:850px){.top,.grid{grid-template-columns:1fr 1fr}.attrgrid{grid-template-columns:1fr 1fr}.attrgrid>*{grid-column:auto!important}}@media(max-width:560px){.top,.grid{grid-template-columns:1fr}header{padding:15px}}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.attr{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fbfcfe}.attrgrid{display:grid;grid-template-columns:70px 1.4fr 1fr 1fr 100px 120px 90px;gap:8px;align-items:end}.attrgrid .wide{grid-column:span 1}.muted{color:var(--muted);font-size:12px}.endpoint-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.ep-card{padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#fff}.ep-card:hover{border-color:var(--accent)}.badge{display:inline-block;padding:3px 7px;border-radius:20px;background:#edf3ff;color:var(--accent);font-size:11px;font-weight:700}.status{font-size:12px;padding:7px 10px;border-radius:20px;background:#edf1f5;color:var(--muted)}.ok{color:var(--ok)}.notice{background:#fff8e1;border:1px solid #f1df9d;border-radius:10px;padding:12px;font-size:13px;margin-bottom:12px}.lt-profile-panel{grid-column:1/-1;border:1px solid #cbd8ea;background:#f5f8ff;border-radius:10px;padding:12px}.lt-profile-row{display:grid;grid-template-columns:minmax(220px,1fr) 2fr auto;gap:12px;align-items:end}.lt-profile-info{font-size:12px;color:var(--muted);line-height:1.5}.mqtt-disabled{opacity:.7}.actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}.fileinput{display:none}.csvbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.csvbar input[type=file]{display:none}.csvhelp{font-size:12px;color:var(--muted);margin-top:8px}.modal{display:none;position:fixed;inset:0;background:#0b122099;z-index:1000;padding:24px;overflow:auto}.modal.open{display:flex;align-items:flex-start;justify-content:center}.modal-card{width:min(1100px,100%);background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:0 20px 60px #0004;padding:20px;margin:20px auto}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.modal-head h2{margin:0}.modal-close{background:#e9eef6;color:var(--ink);font-size:20px;padding:6px 11px}.edit-meta{display:grid;grid-template-columns:180px 1fr 250px;gap:12px;margin-bottom:14px}.modal-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:16px}.ep-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.ep-actions button{padding:7px 12px}.ep-card{cursor:default;transition:background .15s,border-color .15s,box-shadow .15s}.ep-card.modbus-error{background:#fff1f1;border-color:#e53935;box-shadow:0 0 0 1px #e5393522}.ep-card.modbus-ok{background:#fff}.ep-status-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}.status-btn{padding:7px 11px}.status-btn.ok{background:#e8f7ee;color:#176b3d}.status-btn.error{background:#fee2e2;color:#b42318}.status-btn.pending{background:#eef2f7;color:#687386}.rtu-details{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}.rtu-details.open{display:block}.rtu-table{width:100%;border-collapse:collapse;font-size:11px}.rtu-table th,.rtu-table td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.rtu-table th{color:var(--muted)}.rtu-ok{color:var(--ok);font-weight:700}.rtu-error{color:var(--danger);font-weight:700}.rtu-message{font-size:12px;margin:6px 0}
+@media(max-width:850px){.top,.grid{grid-template-columns:1fr 1fr}.attrgrid{grid-template-columns:1fr 1fr}.attrgrid>*{grid-column:auto!important}}@media(max-width:560px){.top,.grid,.lt-profile-row{grid-template-columns:1fr}header{padding:15px}}
 </style>
 </head>
 <body>
-<header><div><h1>NUOS BMS • ESP32-C6 Modbus Gateway</h1><small>Modbus → ESP32-C6 → UART → ESP32-H2</small></div><span id="h2status" class="status">H2: checking…</span></header>
+<header><div><h1>NUOS BMS • ESP32-C6 Modbus Gateway</h1><small>Modbus → ESP32-C6 → UART → ESP32-H2</small></div><div class="toolbar" style="justify-content:flex-end"><span id="h2status" class="status">H2: checking…</span><button id="h2FactoryResetBtn" class="danger" style="display:none" type="button" onclick="factoryResetH2()">H2 Factory Reset</button></div></header>
 <div class="container">
 <div class="card top">
 <div><label>Endpoint Count</label><select id="endpointCount"></select></div>
 <div><label>Device / Module</label><select id="deviceType"></select></div>
 <div><label>Zigbee Cluster</label><select id="clusterId"></select><input id="clusterCustom" type="text" placeholder="Custom cluster ID e.g. 0xFC55" style="display:none;margin-top:6px"></div>
-<div class="notice" style="grid-column:1/-1"><b>Dynamic Zigbee attributes:</b> H2 creates exactly the enabled attribute count for each endpoint (1–64). There is no 16-attribute per-endpoint limit. DG can use 51/52 attributes and LT Panel 12 on a single endpoint.</div><div class="csvbar"><button class="secondary" onclick="document.getElementById('csvFile').click()">Import CSV (Excel-compatible)</button><input id="csvFile" type="file" accept=".csv,text/csv,.txt" onchange="importCSVFile(event)"><button class="secondary" onclick="downloadCurrentCSV()">Download Current CSV</button><button class="secondary" onclick="downloadAllCSV()">Download All CSV</button></div>
+<div class="notice" style="grid-column:1/-1"><b>Dynamic Zigbee attributes:</b> H2 creates exactly the enabled attribute count for each endpoint (1–64). There is no 16-attribute per-endpoint limit. The LT Panel station profiles below load the supplied station-specific Modbus addresses.</div>
+<div id="ltPanelProfilePanel" class="lt-profile-panel" style="display:none">
+  <div class="lt-profile-row">
+    <div><label for="ltStationProfile">LT Panel Station Profile</label><select id="ltStationProfile"><option value="1">Station_01 (01-06 / Depot)</option><option value="2">Station_07 (07-08)</option><option value="3">Station_09</option><option value="4">Station_10</option><option value="5">Station_11</option></select></div>
+    <div><label>Profile details</label><div id="ltProfileInfo" class="lt-profile-info">Loading station profile…</div></div>
+    <div><button id="applyLtStation" class="primary" onclick="applyLtPanelStationProfile()">Apply Station Map</button></div>
+  </div>
+  <div class="muted" style="margin-top:8px">Applying the map saves it as the LT Panel template. You can also choose to replace the mappings on all existing LT Panel endpoints. Station 01 is specified as 19200 8N1; Station 09's 19200 baud comment is marked for verification. Other station baud rates were not specified and are left unchanged.</div>
+</div>
+<div class="csvbar"><button class="secondary" onclick="document.getElementById('csvFile').click()">Import CSV (Excel-compatible)</button><input id="csvFile" type="file" accept=".csv,text/csv,.txt" onchange="importCSVFile(event)"><button class="secondary" onclick="downloadCurrentCSV()">Download Current CSV</button><button class="secondary" onclick="downloadAllCSV()">Download All CSV</button></div>
 </div>
 </div>
 <div class="card">
@@ -46,7 +55,7 @@ label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bot
 </div>
 </div>
 <script>
-const $=id=>document.getElementById(id);let current={endpoint:1,enabled:true,device_type:9,cluster_id:0,attributes:[]};let savedEndpointCount=1;let modbusStatusCache={};let editContext=null;
+const $=id=>document.getElementById(id);let current={endpoint:1,enabled:true,device_type:9,cluster_id:0,attributes:[]};let savedEndpointCount=1;let modbusStatusCache={};let editContext=null;let activeLtStationId=1;
 const functions=[[1,'01 • Read Coils'],[2,'02 • Read Discrete Inputs'],[3,'03 • Read Holding Registers'],[4,'04 • Read Input Registers'],[5,'05 • Write Single Coil'],[6,'06 • Write Single Register'],[15,'15 • Write Multiple Coils'],[16,'16 • Write Multiple Registers']];
 const types=[[0,'BOOL (1 byte)'],[1,'UINT16 (2 bytes)'],[2,'INT16 (2 bytes)'],[3,'UINT32 (4 bytes)'],[4,'INT32 (4 bytes)'],[5,'FLOAT32 (4 bytes)'],[6,'UINT64 (8 bytes)'],[7,'INT64 (8 bytes)'],[8,'STRING (variable)'],[9,'UINT8 (1 byte)'],[10,'INT8 (1 byte)'],[11,'UINT24_t (3 bytes)'],[12,'UINT48_t (6 bytes)']];
 const typeByName=Object.fromEntries(types.map(x=>[x[1].split(' ')[0].toUpperCase(),x[0]]));
@@ -102,6 +111,7 @@ async function init(){
  // endpoint configuration remains the authoritative source when available.
  $('deviceType').value=String(startupState.device_type);
  setClusterControl($('clusterId'), clusterForDevice(startupState.device_type, startupState.endpoint));
+ updateLtPanelProfileVisibility();
 
  try{
    const st=await api('/api/status');
@@ -123,7 +133,9 @@ async function init(){
  });
  $('deviceType').onchange=()=>deviceChanged().catch(e=>console.warn('Device change failed',e));
  $('endpointCount').onchange=()=>setEndpointCount().catch(e=>console.warn('Endpoint count failed',e));
+ $('ltStationProfile').onchange=()=>loadLtPanelProfileInfo(+$('ltStationProfile').value).catch(e=>console.warn('LT station profile info failed',e));
 
+ try{await loadLtPanelProfileInfo()}catch(e){console.warn('LT Panel profile load failed',e)}
  try{await loadSerial()}catch(e){console.warn('Serial load failed',e)}
 
  // Load the saved endpoint list and then restore the module/cluster from
@@ -141,6 +153,7 @@ async function init(){
      current=first;
      $('deviceType').value=String(first.device_type);
      setClusterControl($('clusterId'), first.cluster_id||clusterForDevice(first.device_type, first.endpoint));
+     updateLtPanelProfileVisibility();
      startupState.device_type=+first.device_type;
      startupState.endpoint=+first.endpoint;
      saveUiState({device_type:+first.device_type,endpoint:+first.endpoint});
@@ -189,10 +202,60 @@ function getClusterControl(elId){
 function deviceChanged(){
  const dt=+$('deviceType').value;
  setClusterControl($('clusterId'),clusterForDevice(dt,1));
+ updateLtPanelProfileVisibility();
  saveUiState({device_type:dt});
 }
+function updateLtPanelProfileVisibility(){
+ const panel=$('ltPanelProfilePanel');
+ if(panel)panel.style.display=(+$('deviceType').value===0)?'block':'none';
+}
+function formatLtProfileInfo(p){
+ const baud=p.profile_baud_rate?
+   `${p.profile_baud_rate} baud${p.baud_rate_needs_verification?' (verify comment)':' (8N1)'}`:
+   `baud not specified (currently ${p.current_baud_rate} baud)`;
+ return `${esc(p.station_name)} · profile metadata: read ${p.read_register_count}, skip ${p.skip_register_count}, offset ${p.address_offset}, max variables ${p.max_variables} · ${baud} · exact configured-register polling (no gap scans) · Phase-ID type code ${p.phase_id_type_code}`;
+}
+async function loadLtPanelProfileInfo(stationId){
+ const p=await api('/api/lt-panel-profile'+(stationId?'?station_id='+stationId:''));
+ if(p.active_station_id)activeLtStationId=+p.active_station_id;
+ if(!stationId)$('ltStationProfile').value=String(activeLtStationId);
+ $('ltProfileInfo').textContent=formatLtProfileInfo(p);
+ updateLtPanelProfileVisibility();
+ return p;
+}
+async function applyLtPanelStationProfile(){
+ const stationId=+$('ltStationProfile').value;
+ const endpointList=await api('/api/endpoints');
+ const existingLt=endpointList.filter(x=>+x.device_type===0);
+ let applyToEndpoints=false;
+ if(existingLt.length){
+   applyToEndpoints=confirm(`Apply this station map to all ${existingLt.length} existing LT Panel endpoint(s)?\n\nOK = Replace their LT Panel register mappings and sync to H2.\nCancel = Save as the default template only; existing endpoints remain unchanged.`);
+ }
+ const button=$('applyLtStation');
+ button.disabled=true;button.textContent='Applying…';
+ try{
+   const result=await api('/api/lt-panel-profile',{method:'POST',body:JSON.stringify({station_id:stationId,apply_to_endpoints:applyToEndpoints})});
+   activeLtStationId=stationId;
+   if(result.serial_updated)await loadSerial();
+   $('ltProfileInfo').textContent=formatLtProfileInfo(result)+` · template saved · ${result.updated_endpoints||0} existing endpoint(s) updated`;
+   if((result.updated_endpoints||0)>0){await refreshEndpoints();await refreshModbusStatuses();}
+   alert(`LT Panel ${result.station_name} profile applied.\nUpdated existing endpoints: ${result.updated_endpoints||0}.\n${result.serial_updated?'RS485 serial updated to '+result.current_baud_rate+' 8N1.':'RS485 serial settings were left unchanged; check the Serial Port tab.'}`);
+ }catch(e){
+   alert('Could not apply LT Panel station map: '+e.message);
+ }finally{
+   button.disabled=false;button.textContent='Apply Station Map';
+ }
+}
+
 async function setEndpointCount(){
  const requested=Math.max(1,Math.min(50,+$('endpointCount').value||1));
+ if(+$('deviceType').value===0 && +$('ltStationProfile').value!==activeLtStationId){
+   alert('Apply the selected LT Panel station map before provisioning endpoints.');
+   $('ltStationProfile').value=String(activeLtStationId);
+   await loadLtPanelProfileInfo(activeLtStationId);
+   $('endpointCount').value=savedEndpointCount;
+   return;
+ }
  if(requested===savedEndpointCount){$('endpointCount').value=savedEndpointCount;return;}
  const accepted=confirm('Current Enpoints Data will be deleted, Are you Sure to Continue?');
  if(!accepted){$('endpointCount').value=savedEndpointCount;return;}
@@ -265,9 +328,45 @@ function pduFromReference(fn,ref){fn=+fn;ref=+ref||0;if([3,6,16].includes(fn)&&r
 function functionReferenceHint(fn){fn=+fn;if([3,6,16].includes(fn))return '40001–49999';if(fn===4)return '30001–39999';if(fn===2)return '10001–19999';return '1–9999'}
 function attrObj(){return {enabled:true,attribute_id:0,function:4,address:0,address2:0,address3:0,reference:30001,reg_count:1,data_type:1,word_order:0,packed_count:0,name:'Attribute'}}
 function normalizeRegCount(a){if(!a.reg_count||a.reg_count<1)a.reg_count=1}
-function addAttr(){if(current.attributes.length>=MAX_ATTRIBUTES_PER_ENDPOINT){alert('Maximum 64 configured attributes per endpoint.');return}current.attributes.push(attrObj());renumber();renderAttrs()}
+function addAttr(){if(current.attributes.length>=MAX_ATTRIBUTES_PER_ENDPOINT){alert('Maximum 64 configured attributes per endpoint.');return}const a=attrObj();if(Number(current.device_type)===0&&Number(a.data_type)===1)a.reg_count=2;current.attributes.push(a);renumber();renderAttrs()}
 function renumber(){current.attributes.forEach((a,i)=>a.attribute_id=i)}
-function renderAttrs(){let box=$('attrs');box.innerHTML='';if(!current.attributes.length){box.innerHTML='<div class="empty">No attributes configured. Load a device template, import a CSV file or add one manually.</div>';return}current.attributes.forEach((a,i)=>{if(a.reference==null)a.reference=referenceForFunction(a.function,a.address);let d=document.createElement('div');d.className='attr';d.innerHTML=`<div class="attrgrid"><div><label>ID</label><input data-k="attribute_id" value="${a.attribute_id}" type="number" min="0" max="255"></div><div><label>Name</label><input data-k="name" value="${esc(a.name||'Attribute')}"></div><div><label>Function</label><select data-k="function">${functions.map(x=>`<option value="${x[0]}" ${x[0]==a.function?'selected':''}>${x[1]}</option>`).join('')}</select></div><div><label>Modbus Reference (datasheet)</label><input data-k="reference" value="${a.reference}" type="number" min="1" max="49999"><div class="muted">Expected: ${functionReferenceHint(a.function)}</div></div><div><label>Register / Bit Count</label><div class="muted">For phase parameters, use one row per register (R/Y/B); save each row with count = 1.</div><input data-k="reg_count" value="${a.reg_count||1}" type="number" min="1" max="125"></div><div><label>Data Type</label><select data-k="data_type">${types.map(x=>`<option value="${x[0]}" ${x[0]==a.data_type?'selected':''}>${x[1]}</option>`).join('')}</select></div><div><label>Packed Count</label><input data-k="packed_count" value="${a.packed_count||0}" type="number" min="0" max="3"></div><div><label>Address 2</label><input data-k="address2" value="${a.address2||''}" type="number"></div><div><label>Address 3</label><input data-k="address3" value="${a.address3||''}" type="number"></div></div><div class="actions"><label style="display:flex;gap:8px;align-items:center;margin:0"><input data-k="enabled" type="checkbox" ${a.enabled?'checked':''} style="width:auto"> Enabled</label><button class="danger" onclick="removeAttr(${i})">Delete Attribute</button></div>`;d.querySelectorAll('[data-k]').forEach(el=>{el.oninput=el.onchange=()=>{let k=el.dataset.k;if(k==='function'){let oldPdu=+a.address||pduFromReference(a.function,a.reference);a.function=+el.value;a.address=oldPdu;a.reference=referenceForFunction(a.function,oldPdu);let refEl=d.querySelector('[data-k="reference"]');if(refEl)refEl.value=a.reference;let hint=refEl?.parentElement?.querySelector('.muted');if(hint)hint.textContent='Expected: '+functionReferenceHint(a.function);return}if(k==='reference'){current.attributes[i].reference=+el.value||0;current.attributes[i].address=pduFromReference(a.function,a.reference);return}current.attributes[i][k]=el.type==='checkbox'?el.checked:(k==='name'?el.value:+el.value)}});box.appendChild(d)})}
+function renderAttrs(){
+ const box=$('attrs');box.innerHTML='';
+ if(!current.attributes.length){box.innerHTML='<div class="empty">No attributes configured. Load a device template, import a CSV file or add one manually.</div>';return}
+ const isLtPanel=Number(current.device_type)===0;
+ current.attributes.forEach((a,i)=>{
+  if(a.reference==null)a.reference=isLtPanel?Number(a.address||0):referenceForFunction(a.function,a.address);
+  const displayRef=isLtPanel?Number(a.address||0):Number(a.reference||0);
+  const refLabel=isLtPanel?'Modbus Register Address (raw PDU)':'Modbus Reference (datasheet)';
+  const refHint=isLtPanel?'Enter the exact zero-based address from the selected station map.':'Expected: '+functionReferenceHint(a.function);
+  const refMin=isLtPanel?0:1,refMax=isLtPanel?65535:49999;
+  const countHint=isLtPanel?'For UINT16: count = 2 (address N = high byte, N+1 = low byte). Power Consumption UINT32 remains count = 2.':'For standard Modbus values, count is the number of 16-bit registers (or bits for FC01/02).';
+  let d=document.createElement('div');d.className='attr';
+  d.innerHTML=`<div class="attrgrid"><div><label>ID</label><input data-k="attribute_id" value="${a.attribute_id}" type="number" min="0" max="255"></div><div><label>Name</label><input data-k="name" value="${esc(a.name||'Attribute')}"></div><div><label>Function</label><select data-k="function">${functions.map(x=>`<option value="${x[0]}" ${x[0]==a.function?'selected':''}>${x[1]}</option>`).join('')}</select></div><div><label>${refLabel}</label><input data-k="reference" value="${displayRef}" type="number" min="${refMin}" max="${refMax}"><div class="muted">${refHint}</div></div><div><label>Register / Bit Count</label><div class="muted">${countHint}</div><input data-k="reg_count" value="${a.reg_count||1}" type="number" min="1" max="125"></div><div><label>Data Type</label><select data-k="data_type">${types.map(x=>`<option value="${x[0]}" ${x[0]==a.data_type?'selected':''}>${x[1]}</option>`).join('')}</select></div><div><label>Word Order</label><select data-k="word_order"><option value="0" ${!a.word_order?'selected':''}>High word first</option><option value="1" ${a.word_order?'selected':''}>Low word first</option></select></div><div><label>Packed Count</label><input data-k="packed_count" value="${a.packed_count||0}" type="number" min="0" max="3"></div><div><label>Address 2</label><input data-k="address2" value="${a.address2||''}" type="number"></div><div><label>Address 3</label><input data-k="address3" value="${a.address3||''}" type="number"></div></div><div class="actions"><label style="display:flex;gap:8px;align-items:center;margin:0"><input data-k="enabled" type="checkbox" ${a.enabled?'checked':''} style="width:auto"> Enabled</label><button class="danger" onclick="removeAttr(${i})">Delete Attribute</button></div>`;
+  d.querySelectorAll('[data-k]').forEach(el=>{
+   el.oninput=el.onchange=()=>{
+    let k=el.dataset.k;
+    if(k==='function'){
+     const oldAddress=Number(a.address||0);
+     a.function=+el.value;a.address=oldAddress;
+     a.reference=isLtPanel?oldAddress:referenceForFunction(a.function,oldAddress);
+     const refEl=d.querySelector('[data-k="reference"]');
+     if(refEl)refEl.value=a.reference;
+     const hint=refEl?.parentElement?.querySelector('.muted');
+     if(hint)hint.textContent=isLtPanel?'Enter the exact zero-based address from the selected station map.':'Expected: '+functionReferenceHint(a.function);
+     return;
+    }
+    if(k==='reference'){
+     a.reference=+el.value||0;
+     a.address=isLtPanel?a.reference:pduFromReference(a.function,a.reference);
+     return;
+    }
+    a[k]=el.type==='checkbox'?el.checked:(k==='name'?el.value:+el.value);
+   };
+  });
+  box.appendChild(d);
+ });
+}
 function removeAttr(i){current.attributes.splice(i,1);renumber();renderAttrs()}
 const PROPAGATED_ATTRIBUTE_FIELDS=['enabled','name','function','address','reference','reg_count','data_type','word_order','packed_count','address2','address3'];
 function getChangedAttributeEdits(before,after){
@@ -311,7 +410,14 @@ async function saveEndpointFromEditor(){
  current.cluster_id=getClusterControl('editClusterId')||clusterForDevice(current.device_type,current.endpoint);
  current.enabled=true;
  saveUiState({device_type:current.device_type,endpoint:current.endpoint,endpoint_count:savedEndpointCount});
- for(const a of current.attributes){a.reference=+a.reference||0;a.address=pduFromReference(a.function,a.reference);if(a.enabled!==false&&!a.reference){alert('Every enabled attribute needs a Modbus reference. Disabled template placeholders may remain unassigned.');return}}
+ const isLtPanel=current.device_type===0;
+ for(const a of current.attributes){
+  a.reference=+a.reference||0;
+  a.address=isLtPanel?a.reference:pduFromReference(a.function,a.reference);
+  if(a.enabled!==false && (isLtPanel ? a.address<0 : !a.reference)){
+   alert('Every enabled attribute needs a valid Modbus address/reference.');return;
+  }
+ }
  try{
   await api('/api/endpoint',{method:'POST',body:JSON.stringify(current)});
   let propagated=0;
@@ -370,11 +476,14 @@ function renderModbusStatusCard(ep){
    if(r.packed_count>1){
       if(r.address2!=null)reg+=' / '+String(base+r.address2);
       if(r.address3!=null)reg+=' / '+String(base+r.address3);
+   }else if(Number(r.reg_count)>1){
+      const last=Number(r.reference)+Number(r.reg_count)-1;
+      reg+='–'+String(last);
    }
    if(r.ok)return `<tr><td>${r.attribute_id}</td><td>${reg}</td><td>FC${r.function}</td><td class="rtu-ok">${esc(r.data_hex||String(r.data))}</td></tr>`;
    return `<tr><td>${r.attribute_id}</td><td>${reg}</td><td>FC${r.function}</td><td class="rtu-error">${esc(r.error||'Read error')}</td></tr>`;
  }).join('');
- details.innerHTML=`<table class="rtu-table"><thead><tr><th>Attr</th><th>Modbus Register</th><th>FC</th><th>Data / Error</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No configured Modbus registers.</td></tr>'}</tbody></table>`;
+ details.innerHTML=`<table class="rtu-table"><thead><tr><th>Attr</th><th>Modbus Register(s)</th><th>FC</th><th>Data / Error</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No configured Modbus registers.</td></tr>'}</tbody></table>`;
 }
 async function refreshModbusStatuses(){
  try{
@@ -443,13 +552,40 @@ async function status(){
    let st=await api('/api/status');
    $('h2status').textContent='H2: '+(st.h2_joined?'joined':'not joined');
    $('h2status').className='status '+(st.h2_joined?'ok':'');
+   const resetBtn=$('h2FactoryResetBtn');
+   if(resetBtn){
+     resetBtn.style.display=st.h2_joined?'inline-block':'none';
+     if(!window.h2FactoryResetBusy) resetBtn.disabled=false;
+   }
    if(st.endpoint_count && +st.endpoint_count!==savedEndpointCount){
       savedEndpointCount=Math.max(1,Math.min(50,+st.endpoint_count));
       $('endpointCount').value=savedEndpointCount;
       saveUiState({endpoint_count:savedEndpointCount});
    }
- }catch(e){$('h2status').textContent='H2: offline'}
+ }catch(e){$('h2status').textContent='H2: offline';const b=$('h2FactoryResetBtn');if(b)b.style.display='none'}
 }
+
+async function factoryResetH2(){
+ const resetBtn=$('h2FactoryResetBtn');
+ if(window.h2FactoryResetBusy) return;
+ const confirmed=confirm('Factory reset the ESP32-H2 Zigbee device?\n\nThis clears H2 Zigbee network credentials and restarts H2. C6 endpoint and Modbus configuration will remain saved.');
+ if(!confirmed) return;
+ window.h2FactoryResetBusy=true;
+ if(resetBtn){resetBtn.disabled=true;resetBtn.textContent='Resetting H2…'}
+ $('h2status').textContent='H2: factory reset requested';
+ try{
+   await api('/api/h2/factory-reset',{method:'POST'});
+   if(resetBtn) resetBtn.style.display='none';
+   setTimeout(status,1200);
+ }catch(e){
+   alert('H2 factory reset failed: '+(e.message||e));
+   await status();
+ }finally{
+   window.h2FactoryResetBusy=false;
+   if(resetBtn) resetBtn.textContent='H2 Factory Reset';
+ }
+}
+
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 /* ---------------- CSV / Excel-compatible configuration ---------------- */
@@ -482,7 +618,7 @@ function boolVal(v,def=true){let s=String(v??'').trim().toLowerCase();if(!s)retu
 function parseType(v){let s=String(v??'').trim().toUpperCase();if(s==='')return 1;if(/^\d+$/.test(s))return +s;return typeByName[s.replace(/\s*\(.*/, '')] ?? typeByName[s] ?? 1}
 function parseFunction(v){let s=String(v??'').trim().toUpperCase();let m=s.match(/(?:FC|FUNCTION|FUNC|0*?)(0*\d+)/);if(m)return +m[1];if(/^\d+$/.test(s))return +s;return 4}
 function num(v,d=0){let n=Number(String(v??'').trim());return Number.isFinite(n)?n:d}
-function parseImportedRows(text){let matrix=parseCSV(text);if(!matrix.length)throw Error('CSV file is empty.');let h=matrix[0].map(normHeader),idx={};h.forEach((x,i)=>idx[x]=i);if(idx.endpoint==null)throw Error('CSV must contain an endpoint column.');let groups=new Map();for(let r=1;r<matrix.length;r++){let row=matrix[r],get=k=>idx[k]==null?'':row[idx[k]]??'';let ep=num(get('endpoint'),0);if(ep<1||ep>50)continue;if(!groups.has(ep))groups.set(ep,{endpoint:ep,slave_id:num(get('slave_id'),ep),enabled:boolVal(get('enabled'),true),device_type:num(get('device_type'),9),device_name:get('device_name'),cluster_id:get('cluster_id')||'0xFCE0',attributes:[]});let g=groups.get(ep);let attrId=get('attribute_id');if(attrId==='')continue;let fn=parseFunction(get('function'));let ref=num(get('reference'),0);let address=num(get('address'),pduFromReference(fn,ref));if(!ref)ref=referenceForFunction(fn,address);let rc=Math.max(1,num(get('reg_count'),1));let dt=parseType(get('data_type'));let packedCount=num(get('packed_count'),0); if(!Number.isInteger(packedCount)||packedCount<0||packedCount>3)throw Error(`Endpoint ${ep} attribute ${attrId}: packed_count must be integer 0..3 (CSV value: ${get('packed_count')}).`);let address2=num(get('address2'),0);let address3=num(get('address3'),0);let baseName=get('name')||('Attribute '+attrId);if(packedCount>=2){if(packedCount>3)throw Error(`Endpoint ${ep} attribute ${attrId}: packed_count must be 2 or 3.`);if(dt!==12)throw Error(`Endpoint ${ep} attribute ${attrId}: packed groups must use UINT48 (12).`);g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:g.attributes.length,function:fn,address:address,address2:address2,address3:address3,reference:ref,reg_count:1,data_type:dt,packed_count:packedCount,name:baseName});continue;}if(rc>1 && [9,10,11,12].includes(dt)){let suffix=rc===3?['R','Y','B']:Array.from({length:rc},(_,k)=>String(k+1));for(let k=0;k<rc;k++){let ar=address+k;g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:g.attributes.length,function:fn,address:ar,reference:referenceForFunction(fn,ar),reg_count:1,data_type:dt,packed_count:0,address2:0,address3:0,name:baseName+' '+suffix[k]});}}else{g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:num(attrId,g.attributes.length),function:fn,address:address,reference:ref,reg_count:1,data_type:dt,packed_count:0,address2:0,address3:0,name:baseName});}}return [...groups.values()]}
+function parseImportedRows(text){let matrix=parseCSV(text);if(!matrix.length)throw Error('CSV file is empty.');let h=matrix[0].map(normHeader),idx={};h.forEach((x,i)=>idx[x]=i);if(idx.endpoint==null)throw Error('CSV must contain an endpoint column.');let groups=new Map();for(let r=1;r<matrix.length;r++){let row=matrix[r],get=k=>idx[k]==null?'':row[idx[k]]??'';let ep=num(get('endpoint'),0);if(ep<1||ep>50)continue;if(!groups.has(ep))groups.set(ep,{endpoint:ep,slave_id:num(get('slave_id'),ep),enabled:boolVal(get('enabled'),true),device_type:num(get('device_type'),9),device_name:get('device_name'),cluster_id:get('cluster_id')||'0xFCE0',attributes:[]});let g=groups.get(ep);let attrId=get('attribute_id');if(attrId==='')continue;let fn=parseFunction(get('function'));let ref=num(get('reference'),0);let address=num(get('address'),pduFromReference(fn,ref));if(!ref)ref=referenceForFunction(fn,address);let rc=Math.max(1,num(get('reg_count'),1));let dt=parseType(get('data_type'));let packedCount=num(get('packed_count'),0); if(!Number.isInteger(packedCount)||packedCount<0||packedCount>3)throw Error(`Endpoint ${ep} attribute ${attrId}: packed_count must be integer 0..3 (CSV value: ${get('packed_count')}).`);let address2=num(get('address2'),0);let address3=num(get('address3'),0);let baseName=get('name')||('Attribute '+attrId);if(packedCount>=2){if(packedCount>3)throw Error(`Endpoint ${ep} attribute ${attrId}: packed_count must be 2 or 3.`);if(dt!==12)throw Error(`Endpoint ${ep} attribute ${attrId}: packed groups must use UINT48 (12).`);g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:g.attributes.length,function:fn,address:address,address2:address2,address3:address3,reference:ref,reg_count:1,data_type:dt,packed_count:packedCount,name:baseName});continue;}if(rc>1 && [9,10,11,12].includes(dt)){let suffix=rc===3?['R','Y','B']:Array.from({length:rc},(_,k)=>String(k+1));for(let k=0;k<rc;k++){let ar=address+k;g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:g.attributes.length,function:fn,address:ar,reference:referenceForFunction(fn,ar),reg_count:1,data_type:dt,packed_count:0,address2:0,address3:0,name:baseName+' '+suffix[k]});}}else{g.attributes.push({enabled:boolVal(get('attribute_enabled'),true),attribute_id:num(attrId,g.attributes.length),function:fn,address:address,reference:ref,reg_count:rc,data_type:dt,packed_count:0,address2:0,address3:0,name:baseName});}}return [...groups.values()]}
 async function importCSVFile(ev){
  let file=ev.target.files?.[0];
  ev.target.value='';

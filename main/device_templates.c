@@ -1,6 +1,7 @@
 #include "device_templates.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /*
  * NUOS C6 dashboard-aligned device templates
@@ -8,8 +9,8 @@
  * Rules:
  *  - Endpoint == Modbus slave ID == Zigbee endpoint.
  *  - Attribute IDs are sequential and stable within each template.
- *  - Do not invent Modbus addresses. LT Panel parameters are configured
- *    and persisted from the web UI; its firmware template is metadata-only.
+ *  - LT Panel register maps are stored as station-specific firmware profiles
+ *    and can be selected/applied from the web UI.
  *  - Other supplied device register maps retain their existing definitions.
  *  - 3xxxx -> FC04, 4xxxx -> FC03.
  */
@@ -26,7 +27,6 @@ static uint16_t pdu(uint32_t ref)
     if (ref >= 1 && ref <= 9999) return (uint16_t)(ref - 1);
     return 0;
 }
-
 static uint16_t cluster_for_endpoint(uint8_t dev, uint8_t ep)
 {
     switch (dev) {
@@ -95,17 +95,155 @@ static void add_pdu(endpoint_config_t *c, const char *name, uint8_t fn,
 
     c->attribute_count++;
 }
-
 /* ----------------------------- LT PANEL -------------------------------- */
 /*
- * LT Panel register maps are configured on the web page.  Firmware must not
- * supply a competing hard-coded list of register addresses or attributes.
- * The web editor saves the selected LT Panel attributes as the persistent
- * device template; endpoint provisioning copies that saved template.
+ * Station register maps supplied for the LT Panel / L&T WL4405 family.
+ *
+ * The numeric addresses below are the raw zero-based Modbus PDU addresses
+ * from V_moduleDeviceModbusAddress. Each UINT16 measurement occupies two
+ * consecutive Modbus input-register addresses. The low 8 bits returned at
+ * address N are the high data byte; the low 8 bits at N+1 are the low data
+ * byte. Phase measurements start every two addresses.
+ *
+ * DEVICE_TYPE_BMS_LTPANEL_PhaseId is code 80 in the supplied V_moduleDeviceType
+ * list. It is retained as profile metadata, not polled as a Modbus register:
+ * it is outside the configured read window for Stations 01, 09, 10 and 11.
  */
+typedef struct {
+    lt_panel_profile_info_t info;
+    uint16_t voltage[3];
+    uint16_t current[3];
+    uint16_t frequency;
+    uint16_t power_consumption;
+    uint16_t power_factor[3];
+    uint8_t power_factor_phase_count;
+} lt_panel_profile_map_t;
+
+static const lt_panel_profile_map_t s_lt_panel_profiles[] = {
+    {
+        .info = { LT_PANEL_STATION_01, "Station_01 (Stations 01-06 / Depot)",
+                  28, 0, 112, 56, 19200, false, 80 },
+        .voltage = {143, 145, 147},
+        .current = {151, 153, 155},
+        .frequency = 157,
+        .power_consumption = 159,
+        .power_factor = {117, 119, 121},
+        .power_factor_phase_count = 3
+    },
+    {
+        .info = { LT_PANEL_STATION_07, "Station_07 (Stations 07-08)",
+                  28, 0, 0, 112, 0, false, 80 },
+        .voltage = {59, 81, 103},
+        .current = {63, 85, 107},
+        .frequency = 41,
+        .power_consumption = 9,
+        .power_factor = {65, 87, 109},
+        .power_factor_phase_count = 3
+    },
+    {
+        .info = { LT_PANEL_STATION_09, "Station_09", 12, 6, 201, 36,
+                  19200, true, 80 },
+        .voltage = {219, 221, 223},
+        .current = {225, 227, 229},
+        .frequency = 211,
+        .power_consumption = 209,
+        .power_factor = {201, 0, 0},
+        .power_factor_phase_count = 1
+    },
+    {
+        .info = { LT_PANEL_STATION_10, "Station_10", 2, 0, 3029, 136,
+                  0, false, 80 },
+        .voltage = {3030, 3032, 3034},
+        .current = {3036, 3038, 3040},
+        .frequency = 3132,
+        .power_consumption = 3126,
+        .power_factor = {3162, 0, 0},
+        .power_factor_phase_count = 1
+    },
+    {
+        .info = { LT_PANEL_STATION_11, "Station_11", 28, 0, 2996, 112,
+                  0, false, 80 },
+        .voltage = {3040, 3070, 3100},
+        .current = {3042, 3072, 3102},
+        .frequency = 3036,
+        .power_consumption = 3030,
+        .power_factor = {3006, 0, 0},
+        .power_factor_phase_count = 1
+    }
+};
+
+static const lt_panel_profile_map_t *lt_panel_find_profile(uint8_t station_id)
+{
+    for (size_t i = 0; i < sizeof(s_lt_panel_profiles) / sizeof(s_lt_panel_profiles[0]); i++) {
+        if (s_lt_panel_profiles[i].info.station_id == station_id) {
+            return &s_lt_panel_profiles[i];
+        }
+    }
+    return NULL;
+}
+
+esp_err_t device_template_get_lt_panel_profile_info(uint8_t station_id,
+                                                      lt_panel_profile_info_t *info)
+{
+    if (!info) return ESP_ERR_INVALID_ARG;
+    const lt_panel_profile_map_t *profile = lt_panel_find_profile(station_id);
+    if (!profile) return ESP_ERR_INVALID_ARG;
+    *info = profile->info;
+    return ESP_OK;
+}
+
+esp_err_t device_template_load_lt_panel_profile(uint8_t station_id, uint8_t endpoint,
+                                                endpoint_config_t *cfg,
+                                                lt_panel_profile_info_t *info)
+{
+    if (!cfg || endpoint == 0 || endpoint > APP_MAX_ENDPOINTS) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    const lt_panel_profile_map_t *profile = lt_panel_find_profile(station_id);
+    if (!profile) return ESP_ERR_INVALID_ARG;
+
+    base(cfg, endpoint, DEVICE_LT_PANEL);
+    if (!cfg->attributes) return ESP_ERR_NO_MEM;
+
+    if (info) *info = profile->info;
+
+    static const char *const phase_names[] = {"R", "Y", "B"};
+    for (uint8_t i = 0; i < 3; i++) {
+        char name[APP_NAME_LEN];
+        snprintf(name, sizeof(name), "Voltage %s", phase_names[i]);
+        /* Each 16-bit LT value is exposed as two byte-addressed Modbus
+         * locations: first address = high byte, next address = low byte. */
+        add_pdu(cfg, name, MB_FC04, profile->voltage[i], 2, MB_TYPE_UINT16);
+    }
+    for (uint8_t i = 0; i < 3; i++) {
+        char name[APP_NAME_LEN];
+        snprintf(name, sizeof(name), "Current %s", phase_names[i]);
+        add_pdu(cfg, name, MB_FC04, profile->current[i], 2, MB_TYPE_UINT16);
+    }
+
+    add_pdu(cfg, "Frequency", MB_FC04, profile->frequency, 2, MB_TYPE_UINT16);
+    add_pdu(cfg, "Power Consumption", MB_FC04, profile->power_consumption,
+            2, MB_TYPE_UINT32);
+
+    if (profile->power_factor_phase_count == 3) {
+        for (uint8_t i = 0; i < 3; i++) {
+            char name[APP_NAME_LEN];
+            snprintf(name, sizeof(name), "Power Factor %s", phase_names[i]);
+            add_pdu(cfg, name, MB_FC04, profile->power_factor[i], 2, MB_TYPE_UINT16);
+        }
+    } else {
+        add_pdu(cfg, "Power Factor", MB_FC04, profile->power_factor[0],
+                2, MB_TYPE_UINT16);
+    }
+
+    return ESP_OK;
+}
+
 static void lt_panel(endpoint_config_t *c, uint8_t ep)
 {
-    base(c, ep, DEVICE_LT_PANEL);
+    /* Station_01 is the initial/default profile; the web UI can select another. */
+    (void)device_template_load_lt_panel_profile(LT_PANEL_STATION_01, ep, c, NULL);
 }
 
 /* ----------------------------- DG --------------------------------------- */
@@ -119,57 +257,59 @@ static void dg(endpoint_config_t *c, uint8_t ep)
     base(c, ep, DEVICE_DG);
 
     /* Main / Mains */
-    add_pdu(c, "Main Voltage L-L R",       3, 1068, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Voltage L-L Y",       3, 1070, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Voltage L-L B",       3, 1072, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Main Voltage L-L R",       3, 1068, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Voltage L-L Y",       3, 1070, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Voltage L-L B",       3, 1072, 2, MB_TYPE_UINT16);
 
-    add_pdu(c, "Main Voltage L-N R",       3, 1062, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Voltage L-N Y",       3, 1064, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Voltage L-N B",       3, 1066, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Main Voltage L-N R",       3, 1062, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Voltage L-N Y",       3, 1064, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Voltage L-N B",       3, 1066, 2, MB_TYPE_UINT16);
 
-    add_pdu(c, "Main Current R",            3, 1078, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Current Y",            3, 1080, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Current B",            3, 1082, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Main Current R",            3, 1078, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Current Y",            3, 1080, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Current B",            3, 1082, 2, MB_TYPE_UINT16);
     add_pdu(c, "Main Frequency",            3, 1060, 1, MB_TYPE_UINT16);
-    add_pdu(c, "Main Earth Current",        3, 1084, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Main Earth Current",        3, 1084, 2, MB_TYPE_UINT16);
 
     /* Generator */
-    add_pdu(c, "Generator Voltage L-L R",   3, 1040, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Voltage L-L Y",   3, 1042, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Voltage L-L B",   3, 1044, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Generator Voltage L-L R",   3, 1040, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Voltage L-L Y",   3, 1042, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Voltage L-L B",   3, 1044, 2, MB_TYPE_UINT16);
 
-    add_pdu(c, "Generator Voltage L-N R",   3, 1034, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Voltage L-N Y",   3, 1036, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Voltage L-N B",   3, 1038, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Generator Frequency",       3, 1032, 1, MB_TYPE_UINT16);
 
-    add_pdu(c, "Generator Current R",        3, 1046, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Current Y",        3, 1048, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Current B",        3, 1050, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Frequency",        3, 1032, 1, MB_TYPE_UINT16);
-    add_pdu(c, "Generator Earth Current",    3, 1052, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Generator Voltage L-N R",   3, 1034, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Voltage L-N Y",   3, 1036, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Voltage L-N B",   3, 1038, 2, MB_TYPE_UINT16);
+
+    add_pdu(c, "Generator Current R",        3, 1046, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Current Y",        3, 1048, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Current B",        3, 1050, 2, MB_TYPE_UINT16);
+    
+    add_pdu(c, "Generator Earth Current",    3, 1052, 2, MB_TYPE_UINT16);
 
     /* Load / power */
-    add_pdu(c, "Main Load Watts R",          3, 1085, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Load Watts Y",          3, 1087, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Main Load Watts B",          3, 1089, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Main Load Watts R",          3, 1085, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Load Watts Y",          3, 1087, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Main Load Watts B",          3, 1089, 2, MB_TYPE_UINT16);
 
-    add_pdu(c, "Generator Load Watts R",    3, 1054, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Load Watts Y",    3, 1056, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Load Watts B",    3, 1058, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Generator Load Watts R",    3, 1054, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Load Watts Y",    3, 1056, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Load Watts B",    3, 1058, 2, MB_TYPE_UINT16);
 
-    add_pdu(c, "Generator Power R",          3, 1555, 1, MB_TYPE_UINT16);
-    add_pdu(c, "Generator Power Y",          3, 1556, 1, MB_TYPE_UINT16);
-    add_pdu(c, "Generator Power B",          3, 1557, 1, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Power R",          3, 1555, 1, MB_TYPE_UINT8);
+    add_pdu(c, "Generator Power Y",          3, 1556, 1, MB_TYPE_UINT8);
+    add_pdu(c, "Generator Power B",          3, 1557, 1, MB_TYPE_UINT8);
 
-    add_pdu(c, "Generator Var R",            3, 1547, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Var Y",            3, 1549, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Var B",            3, 1551, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Total Var",        3, 1553, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Generator Var R",            3, 1547, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Var Y",            3, 1549, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Var B",            3, 1551, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Total Var",        3, 1553, 2, MB_TYPE_UINT16);
 
     /* Energy */
-    add_pdu(c, "Generator Positive kWh",     3, 1801, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Positive kVAh",    3, 1805, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Generator Positive kVArh",  3, 1807, 2, MB_TYPE_UINT32);
+    add_pdu(c, "Generator Positive kWh",     3, 1801, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Positive kVAh",    3, 1805, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Generator Positive kVArh",  3, 1807, 2, MB_TYPE_UINT16);
 
     /* Engine */
     add_pdu(c, "Engine Speed",               3, 1031, 1, MB_TYPE_UINT16);
@@ -177,8 +317,8 @@ static void dg(endpoint_config_t *c, uint8_t ep)
     add_pdu(c, "Engine Battery Voltage",     3, 1030, 1, MB_TYPE_UINT16);
     add_pdu(c, "Oil Pressure",               3, 1025, 1, MB_TYPE_UINT8);
     add_pdu(c, "Coolant Temperature",        3, 1026, 1, MB_TYPE_UINT8);
-    add_pdu(c, "Engine Run Hours",           3, 1798, 2, MB_TYPE_UINT32);
-    add_pdu(c, "Fuel Level",                 3, 1028, 1, MB_TYPE_UINT16);
+    add_pdu(c, "Engine Run Hours",           3, 1798, 2, MB_TYPE_UINT16);
+    add_pdu(c, "Fuel Level",                 3, 1028, 1, MB_TYPE_UINT8);
     add_pdu(c, "DG Status",                  3, 1408, 1, MB_TYPE_UINT8);
 }
 

@@ -27,7 +27,9 @@ static const char *TAG="MODBUS";
 #define MB_BUS_LOCK_TIMEOUT_MS 2000
 #define MB_MAX_REGS 125
 #define MB_MAX_BITS 2000
-#define POLL_PERIOD_MS 1000
+/* Idle time after a full sweep. A sweep can take longer than this value;
+ * it is not a forced 200 ms total-cycle time. */
+#define POLL_PERIOD_MS 200
 
 static SemaphoreHandle_t s_bus_mutex;
 static serial_config_t s_serial;
@@ -56,6 +58,7 @@ typedef struct {
     uint8_t attribute_id;
     uint8_t function;
     uint8_t data_type;
+    uint8_t reg_count;
     uint16_t address;
     uint16_t address2;
     uint16_t address3;
@@ -113,8 +116,11 @@ static void status_begin_endpoint(const endpoint_config_t *ep)
         const modbus_attribute_t *a=&ep->attributes[i];
         modbus_runtime_attr_status_t *as=&st->attr[i];
         as->attribute_id=a->attribute_id; as->function=a->function; as->data_type=a->data_type;
+        as->reg_count=a->reg_count;
         as->address=a->address; as->address2=a->address2; as->address3=a->address3;
-        as->packed_count=a->packed_count; as->reference=status_reference(a->function,a->address);
+        as->packed_count=a->packed_count;
+        as->reference=(ep->device_type==DEVICE_LT_PANEL && a->function==MB_FC04)
+                          ? a->address : status_reference(a->function,a->address);
         as->valid=a->enabled; as->ok=false;
         if(a->enabled) snprintf(as->error,sizeof(as->error),"Waiting for Modbus response");
     }
@@ -161,7 +167,7 @@ static esp_err_t read_bits(uint8_t slave,uint8_t fc,uint16_t start,uint16_t qty,
     uint16_t c = crc16(req, 6);
     req[6] = c & 255;
     req[7] = c >> 8;
-    ESP_LOGI(TAG, "TX slave=%u FC%u PDU=%u qty=%u [%02X %02X %02X %02X %02X %02X %02X %02X]",
+    ESP_LOGD(TAG, "TX slave=%u FC%u PDU=%u qty=%u [%02X %02X %02X %02X %02X %02X %02X %02X]",
              slave, fc, start, qty, req[0], req[1], req[2], req[3],
              req[4], req[5], req[6], req[7]);
     if (modbus_bus_lock(slave, fc, start) != ESP_OK) return ESP_ERR_TIMEOUT;
@@ -191,7 +197,7 @@ static esp_err_t read_bits(uint8_t slave,uint8_t fc,uint16_t start,uint16_t qty,
         xSemaphoreGive(s_bus_mutex);
         return ESP_ERR_TIMEOUT;
     }
-    ESP_LOGI(TAG, "RX header slave=%u FC=%u byte_count_or_exc=%u", h[0], h[1], h[2]);
+    ESP_LOGD(TAG, "RX header slave=%u FC=%u byte_count_or_exc=%u", h[0], h[1], h[2]);
     if(h[0]!=slave){ESP_LOGW(TAG,"FC%u wrong slave 0x%02X (wanted %u)",fc,h[0],slave);xSemaphoreGive(s_bus_mutex);return ESP_FAIL;}
     if(h[1]&0x80){uint8_t t[2]={0};int tr=uart_read_bytes(RS485_UART,t,2,pdMS_TO_TICKS(100));if(tr==2){uint8_t all[3];
             memcpy(all, h, 3);
@@ -227,7 +233,7 @@ static esp_err_t read_regs(uint8_t slave, uint8_t fc, uint16_t start,
     req[6] = c & 255;
     req[7] = c >> 8;
 
-    ESP_LOGI(TAG, "TX slave=%u FC%u PDU=%u qty=%u [%02X %02X %02X %02X %02X %02X %02X %02X]",
+    ESP_LOGD(TAG, "TX slave=%u FC%u PDU=%u qty=%u [%02X %02X %02X %02X %02X %02X %02X %02X]",
              slave, fc, start, qty, req[0], req[1], req[2], req[3],
              req[4], req[5], req[6], req[7]);
 
@@ -260,7 +266,7 @@ static esp_err_t read_regs(uint8_t slave, uint8_t fc, uint16_t start,
         return ESP_ERR_TIMEOUT;
     }
 
-    ESP_LOGI(TAG, "RX header slave=%u FC=%u byte_count_or_exc=%u", h[0], h[1], h[2]);
+    ESP_LOGD(TAG, "RX header slave=%u FC=%u byte_count_or_exc=%u", h[0], h[1], h[2]);
 
     if (h[0] != slave) {
         ESP_LOGW(TAG, "FC%u wrong slave 0x%02X (wanted %u)", fc, h[0], slave);
@@ -326,7 +332,7 @@ static esp_err_t read_regs(uint8_t slave, uint8_t fc, uint16_t start,
     uint32_t ref_base = (fc == MB_FC04) ? 30001u : 40001u;
     for (uint16_t i = 0; i < qty; i++) {
         uint32_t ref = ref_base + start + i;
-        ESP_LOGI(TAG,
+        ESP_LOGD(TAG,
                  "RX REGISTER slave=%u FC%u REG=%lu PDU=%u VALUE=%u (0x%04X)",
                  slave,
                  fc,
@@ -417,17 +423,9 @@ static esp_err_t write_multiple(uint8_t slave,uint8_t fc,uint16_t addr,uint16_t 
 static uint64_t parse_u64(const char *s){return strtoull(s,NULL,0);}
 static void encode_value(const modbus_attribute_t *a,const uint16_t *r,uint8_t *dst,size_t *len)
 {
-    /* Most Modbus attributes use standard 16-bit register semantics.
-     * The LT Panel template is different: each Modbus PDU register carries
-     * one 8-bit data byte in its low byte. For that mapping, reg_count equals
-     * the attribute byte width (UINT8=1, UINT16=2, ...).
-     *
-     * UINT8:  attribute_value = low_byte(r[0])
-     * UINT16: attribute_value = low_byte(r[0]) |
-     *                              (low_byte(r[1]) << 8)
-     *
-     * Keep a one-register UINT16 as a normal 16-bit Modbus value so existing
-     * DG/UPS/etc. templates retain their standard register behavior. */
+    /* Standard Modbus numeric decoding. One-register UINT16/INT16 values
+     * retain the complete 16-bit register. Two-register 32-bit values are
+     * decoded using the configured word order. */
     if (a->data_type == MB_TYPE_UINT8 ||
         a->data_type == MB_TYPE_INT8) {
         dst[0] = (uint8_t)r[0];
@@ -516,10 +514,10 @@ static void encode_value(const modbus_attribute_t *a,const uint16_t *r,uint8_t *
 /*
  * Fast Modbus polling
  * -------------------
- * For FC03/FC04, attributes belonging to the same slave/function are grouped
- * into one contiguous read whenever the gap between configured ranges is <=
- * MODBUS_GROUP_GAP_MAX_REGS. Unconfigured registers inside that range are
- * intentionally read too; only configured attributes are forwarded to H2.
+ * For FC03/FC04, non-LT attributes belonging to the same slave/function are
+ * grouped into contiguous reads for efficiency. LT Panel attributes are read
+ * individually using exactly their configured address/count range so that
+ * no undocumented or unused register addresses are polled.
  *
  * Example (single-register attributes):
  *   0,1,2,3,4,5,6,16  -> one read: start=0, qty=17
@@ -534,13 +532,19 @@ static void encode_value(const modbus_attribute_t *a,const uint16_t *r,uint8_t *
 typedef struct {
     uint16_t start;
     uint16_t end;       /* exclusive */
+    uint16_t max_regs;
     uint8_t function;
     uint16_t attr_count;
     uint16_t *attr_indices;
 } modbus_read_group_t;
 
-static bool attr_can_be_grouped(const modbus_attribute_t *a)
+static bool attr_can_be_grouped(const endpoint_config_t *ep,
+                                const modbus_attribute_t *a)
 {
+    /* LT Panel maps are byte-addressed and may contain gaps between valid
+     * measurements. Never widen their request to cover unconfigured points. */
+    if (!ep || ep->device_type == DEVICE_LT_PANEL) return false;
+
     return a && a->enabled &&
            (a->function == MB_FC03 || a->function == MB_FC04) &&
            a->reg_count > 0 && a->packed_count == 0;
@@ -557,7 +561,7 @@ static bool group_can_include(const modbus_read_group_t *g,
     if (gap > MODBUS_GROUP_GAP_MAX_REGS) return false;
 
     uint32_t new_end = (uint32_t)a->address + a->reg_count;
-    return new_end - g->start <= MB_MAX_REGS;
+    return new_end - g->start <= g->max_regs;
 }
 
 static void log_group(const endpoint_config_t *ep, const modbus_read_group_t *g)
@@ -830,7 +834,7 @@ static esp_err_t collect_group_values(const endpoint_config_t *ep,
 
         uint32_t ref_base;
         if (ep->device_type == DEVICE_LT_PANEL && a->function == MB_FC04) {
-            ref_base = 43001u;
+            ref_base = 0u;
         } else {
             ref_base = (a->function == MB_FC04) ? 30001u : 40001u;
         }
@@ -844,11 +848,30 @@ static esp_err_t collect_group_values(const endpoint_config_t *ep,
                  regs[offset],
                  regs[offset],
                  values[ai].len);
-        ESP_LOG_BUFFER_HEX(TAG, values[ai].value, values[ai].len);
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, values[ai].value, values[ai].len, ESP_LOG_DEBUG);
     }
 
     free(regs);
     return ESP_OK;
+}
+
+static void encode_lt_panel_value(const modbus_attribute_t *a,
+                                  const uint16_t *regs,
+                                  uint8_t *dst,
+                                  size_t *len)
+{
+    /* The LT Panel map uses two consecutive Modbus input-register addresses for
+     * each 16-bit attribute. The low 8 bits returned for address N are the
+     * high data byte; address N+1 supplies the low data byte. */
+    if (a && regs && dst && len && a->reg_count == 2 &&
+        (a->data_type == MB_TYPE_UINT16 || a->data_type == MB_TYPE_INT16)) {
+        dst[0] = (uint8_t)(regs[0] & 0xFFu); /* high byte at base address */
+        dst[1] = (uint8_t)(regs[1] & 0xFFu); /* low byte at base + 1 */
+        *len = 2;
+        return;
+    }
+
+    encode_collected_value(a, regs, a ? a->reg_count : 0, dst, len);
 }
 
 static esp_err_t collect_single_value(const endpoint_config_t *ep,
@@ -899,12 +922,32 @@ static esp_err_t collect_single_value(const endpoint_config_t *ep,
             return ESP_ERR_INVALID_ARG;
         }
 
+        if (ep->device_type == DEVICE_LT_PANEL) {
+            ESP_LOGI(TAG,
+                     "LT EXACT READ EP%u ATTR%u %s FC%u PDU=%u COUNT=%u (only configured addresses)",
+                     ep->slave_id, a->attribute_id, a->name, a->function,
+                     a->address, a->reg_count);
+        }
         e = read_regs(ep->slave_id, a->function, a->address,
                       a->reg_count, regs);
         if (e == ESP_OK) {
             size_t len = 0;
-            encode_collected_value(a, regs, a->reg_count,
-                                   values[ai].value, &len);
+            if (ep->device_type == DEVICE_LT_PANEL) {
+                if (a->reg_count == 2 &&
+                    (a->data_type == MB_TYPE_UINT16 ||
+                     a->data_type == MB_TYPE_INT16)) {
+                    ESP_LOGD(TAG,
+                             "LT BYTE PAIR EP%u ATTR%u: high-byte address %u raw=0x%04X byte=0x%02X; low-byte address %u raw=0x%04X byte=0x%02X",
+                             ep->slave_id, a->attribute_id,
+                             a->address, regs[0], (unsigned)(regs[0] & 0xFFu),
+                             (unsigned)(a->address + 1u), regs[1],
+                             (unsigned)(regs[1] & 0xFFu));
+                }
+                encode_lt_panel_value(a, regs, values[ai].value, &len);
+            } else {
+                encode_collected_value(a, regs, a->reg_count,
+                                       values[ai].value, &len);
+            }
             if (len > sizeof(values[ai].value)) {
                 e = ESP_ERR_INVALID_SIZE;
             } else {
@@ -924,9 +967,154 @@ static esp_err_t collect_single_value(const endpoint_config_t *ep,
         return e;
     }
 
-    ESP_LOGI(TAG, "COLLECT EP%u ATTR%u %s len=%u",
+    ESP_LOGD(TAG, "COLLECT EP%u ATTR%u %s len=%u",
              ep->slave_id, a->attribute_id, a->name, values[ai].len);
-    ESP_LOG_BUFFER_HEX(TAG, values[ai].value, values[ai].len);
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, values[ai].value, values[ai].len, ESP_LOG_DEBUG);
+    return ESP_OK;
+}
+
+
+/* LT Panel read optimisation:
+ * Coalesce ONLY adjacent, explicitly configured address spans.  No gap is
+ * ever included in a request.  For Station_01 this reduces the nine
+ * individual transactions to the exact configured ranges 117-122 (three phase power factor),
+ * 143-148 and 151-160; every requested address belongs to an enabled
+ * attribute.  Profiles with gaps remain separate transactions.
+ */
+typedef struct {
+    uint16_t attr_index;
+    uint16_t address;
+    uint16_t count;
+    uint8_t function;
+} lt_read_item_t;
+
+static void sort_lt_read_items(lt_read_item_t *items, uint16_t count)
+{
+    for (uint16_t i = 1; i < count; i++) {
+        lt_read_item_t key = items[i];
+        uint16_t j = i;
+        while (j > 0) {
+            const lt_read_item_t *prev = &items[j - 1u];
+            bool after = (prev->function > key.function) ||
+                         (prev->function == key.function &&
+                          prev->address > key.address) ||
+                         (prev->function == key.function &&
+                          prev->address == key.address &&
+                          prev->attr_index > key.attr_index);
+            if (!after) break;
+            items[j] = items[j - 1u];
+            j--;
+        }
+        items[j] = key;
+    }
+}
+
+static esp_err_t collect_lt_panel_exact_ranges(
+    const endpoint_config_t *ep,
+    collected_attribute_t *values)
+{
+    if (!ep || ep->device_type != DEVICE_LT_PANEL || !ep->attributes || !values) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    lt_read_item_t items[APP_MAX_ATTRIBUTES];
+    uint16_t item_count = 0;
+
+    for (uint16_t i = 0; i < ep->attribute_count; i++) {
+        const modbus_attribute_t *a = &ep->attributes[i];
+        if (!a->enabled ||
+            (a->function != MB_FC03 && a->function != MB_FC04) ||
+            a->reg_count == 0 || a->packed_count > 1) {
+            continue;
+        }
+        if (item_count >= APP_MAX_ATTRIBUTES) return ESP_ERR_INVALID_SIZE;
+        items[item_count++] = (lt_read_item_t){
+            .attr_index = i,
+            .address = a->address,
+            .count = a->reg_count,
+            .function = a->function
+        };
+    }
+
+    sort_lt_read_items(items, item_count);
+
+    uint16_t pos = 0;
+    while (pos < item_count) {
+        const uint16_t group_first = pos;
+        const uint16_t start = items[pos].address;
+        const uint8_t function = items[pos].function;
+        uint32_t end = (uint32_t)start + items[pos].count;
+        pos++;
+
+        /* Merge only when the next configured range begins exactly at end.
+         * Any hole means a new Modbus request, not a widened scan. */
+        while (pos < item_count && items[pos].function == function &&
+               items[pos].address == end &&
+               (end + items[pos].count - start) <= MB_MAX_REGS) {
+            end += items[pos].count;
+            pos++;
+        }
+
+        const uint16_t qty = (uint16_t)(end - start);
+        uint16_t regs[MB_MAX_REGS] = {0};
+        int64_t read_start_us = esp_timer_get_time();
+        esp_err_t e = read_regs(ep->slave_id, function, start, qty, regs);
+        uint32_t read_ms = (uint32_t)((esp_timer_get_time() - read_start_us) / 1000);
+        if (e != ESP_OK) {
+            ESP_LOGW(TAG,
+                     "LT RANGE READ FAILED EP%u FC%u PDU=%u COUNT=%u elapsed=%ums result=%s",
+                     ep->slave_id, function, start, qty, (unsigned)read_ms,
+                     esp_err_to_name(e));
+            if (e == ESP_ERR_TIMEOUT) return e;
+
+            /* Some meters reject a multi-register range even when every
+             * address in it is configured. Preserve compatibility by falling
+             * back to the same exact per-attribute ranges; still no gap scan. */
+            for (uint16_t k = group_first; k < pos; k++) {
+                uint16_t ai = items[k].attr_index;
+                esp_err_t fe = collect_single_value(ep, ai, values);
+                if (fe != ESP_OK) {
+                    ESP_LOGW(TAG,
+                             "LT EXACT FALLBACK EP%u ATTR%u failed: %s",
+                             ep->slave_id, ep->attributes[ai].attribute_id,
+                             esp_err_to_name(fe));
+                    return fe;
+                }
+            }
+            ESP_LOGW(TAG,
+                     "LT EXACT FALLBACK EP%u FC%u PDU=%u COUNT=%u recovered=%u attributes",
+                     ep->slave_id, function, start, qty,
+                     (unsigned)(pos - group_first));
+            continue;
+        }
+
+        ESP_LOGI(TAG,
+                 "LT RANGE READ EP%u FC%u PDU=%u..%u COUNT=%u ATTRS=%u elapsed=%ums (no gaps)",
+                 ep->slave_id, function, start, (unsigned)(end - 1u), qty,
+                 (unsigned)(pos - group_first), (unsigned)read_ms);
+
+        for (uint16_t k = group_first; k < pos; k++) {
+            const uint16_t ai = items[k].attr_index;
+            const modbus_attribute_t *a = &ep->attributes[ai];
+            const uint16_t offset = (uint16_t)(a->address - start);
+            if ((uint32_t)offset + a->reg_count > qty) {
+                return ESP_ERR_INVALID_SIZE;
+            }
+
+            size_t value_len = 0;
+            encode_lt_panel_value(a, &regs[offset], values[ai].value, &value_len);
+            if (value_len > sizeof(values[ai].value)) return ESP_ERR_INVALID_SIZE;
+            values[ai].len = (uint8_t)value_len;
+            values[ai].valid = true;
+
+            ESP_LOGD(TAG,
+                     "LT COLLECT EP%u ATTR%u %s PDU=%u COUNT=%u RAW0=0x%04X len=%u",
+                     ep->slave_id, a->attribute_id, a->name,
+                     a->address, a->reg_count, regs[offset],
+                     (unsigned)value_len);
+        }
+    }
+
     return ESP_OK;
 }
 
@@ -1102,6 +1290,7 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
         return ESP_ERR_NOT_FOUND;
     }
 
+    const int64_t endpoint_poll_start_us = esp_timer_get_time();
     status_begin_endpoint(ep);
 
     collected_attribute_t *values =
@@ -1116,18 +1305,19 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
     esp_err_t overall = ESP_OK;
 
     /*
-     * Phase 1: group all ordinary FC03/FC04 attributes and read every group.
+     * Phase 1: group ordinary non-LT FC03/FC04 attributes. LT Panel
+     * attributes are deliberately excluded and are read exactly in Phase 2.
      * Nothing is sent to H2 yet.
      */
     uint16_t remaining = 0;
     for (uint16_t i = 0; i < ep->attribute_count; i++) {
-        if (attr_can_be_grouped(&ep->attributes[i])) remaining++;
+        if (attr_can_be_grouped(ep, &ep->attributes[i])) remaining++;
     }
 
     while (remaining) {
         int first = -1;
         for (uint16_t i = 0; i < ep->attribute_count; i++) {
-            if (used[i] || !attr_can_be_grouped(&ep->attributes[i])) continue;
+            if (used[i] || !attr_can_be_grouped(ep, &ep->attributes[i])) continue;
             if (first < 0 ||
                 ep->attributes[i].address < ep->attributes[first].address ||
                 (ep->attributes[i].address == ep->attributes[first].address &&
@@ -1142,6 +1332,7 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
             .start = ep->attributes[first].address,
             .end = (uint16_t)(ep->attributes[first].address +
                               ep->attributes[first].reg_count),
+            .max_regs = MB_MAX_REGS,
             .function = ep->attributes[first].function,
             .attr_count = 0,
             .attr_indices = group_indices
@@ -1151,7 +1342,7 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
         do {
             expanded = false;
             for (uint16_t i = 0; i < ep->attribute_count; i++) {
-                if (used[i] || !attr_can_be_grouped(&ep->attributes[i])) continue;
+                if (used[i] || !attr_can_be_grouped(ep, &ep->attributes[i])) continue;
                 if (!group_can_include(&g, &ep->attributes[i])) continue;
                 if (g.attr_count >= (sizeof(group_indices) / sizeof(group_indices[0]))) break;
 
@@ -1229,13 +1420,33 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
     }
 
     /*
-     * Phase 2: read the remaining configured attributes (FC01/02 and packed
-     * FC03/04).  They are also collected and NOT sent individually.
+     * Phase 2: LT Panel reads are merged only across immediately adjacent
+     * explicitly configured ranges. This removes per-attribute transaction
+     * overhead without ever reading an unconfigured register. Other device
+     * families keep their current exact/packed behaviour.
      */
+    if (ep->device_type == DEVICE_LT_PANEL) {
+        esp_err_t e = collect_lt_panel_exact_ranges(ep, values);
+        if (e != ESP_OK) {
+            ESP_LOGW(TAG,
+                     "EP%u LT Panel exact-range cycle failed: %s; no partial H2 update",
+                     ep->slave_id, esp_err_to_name(e));
+            status_finalize_endpoint(ep, values, false, e);
+            free(values);
+            free(used);
+            return e;
+        }
+    }
+
     for (uint16_t i = 0; i < ep->attribute_count; i++) {
         const modbus_attribute_t *a = &ep->attributes[i];
         if (!a->enabled) continue;
-        if (attr_can_be_grouped(a)) continue; /* already read above */
+        if (attr_can_be_grouped(ep, a)) continue; /* already read above */
+        if (ep->device_type == DEVICE_LT_PANEL &&
+            (a->function == MB_FC03 || a->function == MB_FC04) &&
+            a->packed_count <= 1) {
+            continue; /* handled by exact-adjacent LT range planner */
+        }
 
         if (a->function == MB_FC01 || a->function == MB_FC02 ||
             ((a->function == MB_FC03 || a->function == MB_FC04) &&
@@ -1288,6 +1499,11 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
         free(used);
         return overall != ESP_OK ? overall : ESP_ERR_INVALID_STATE;
     }
+
+    ESP_LOGI(TAG,
+             "EP%u MODBUS READ COMPLETE valid=%u/%u elapsed=%ums",
+             ep->slave_id, valid, expected,
+             (unsigned)((esp_timer_get_time() - endpoint_poll_start_us) / 1000));
 
     /* Only forward values that differ from the last H2-ACKed values. */
     modbus_last_sent_endpoint_t *cache = &s_last_sent[ep->slave_id - 1u];
@@ -1377,8 +1593,15 @@ static esp_err_t poll_endpoint(const endpoint_config_t *ep,
         ESP_LOGI(TAG,
                  "PER-ENDPOINT UART SEND EP%u changed_attrs=%u payload_len=%u",
                  ep->slave_id, payload_attr_count, (unsigned)payload_len);
+        const int64_t uart_start_us = esp_timer_get_time();
         esp_err_t send_e = nuos_link_send_generic(
             ep->slave_id, payload, payload_len);
+        const uint32_t uart_ack_ms =
+            (uint32_t)((esp_timer_get_time() - uart_start_us) / 1000);
+        ESP_LOGI(TAG,
+                 "EP%u C6_TO_H2_UART_ACK elapsed=%ums result=%s",
+                 ep->slave_id, (unsigned)uart_ack_ms,
+                 esp_err_to_name(send_e));
         if (send_e == ESP_OK) {
             modbus_cache_commit_sent_values(ep, values, cache);
             ESP_LOGI(TAG,
@@ -1418,7 +1641,14 @@ static void poll_task(void *arg)
         ESP_LOGI(TAG, "========== MODBUS FULL SWEEP START ==========");
 #endif
 
-        for (uint8_t ep = 1; ep <= APP_MAX_ENDPOINTS; ep++) {
+        uint8_t poll_endpoint_count = 1;
+        (void)app_config_load_endpoint_count(&poll_endpoint_count);
+        if (poll_endpoint_count < 1 || poll_endpoint_count > APP_MAX_ENDPOINTS) {
+            poll_endpoint_count = APP_MAX_ENDPOINTS;
+        }
+        const int64_t sweep_start_us = esp_timer_get_time();
+
+        for (uint8_t ep = 1; ep <= poll_endpoint_count; ep++) {
             /* app_config_load_endpoint() allocates cfg.attributes. Every
              * successful load is paired with app_config_free_endpoint(). */
             endpoint_config_t cfg = {0};
@@ -1465,7 +1695,7 @@ static void poll_task(void *arg)
                          (unsigned)uxTaskGetStackHighWaterMark(NULL));
             }
 
-            vTaskDelay(pdMS_TO_TICKS(5));
+            taskYIELD();
         }
 
 #if MODBUS_DATA_SEND_MODE == MODBUS_SEND_MODE_ALL_ENDPOINTS_BATCH
@@ -1477,7 +1707,7 @@ static void poll_task(void *arg)
                  pending_count);
 
         uint16_t sent_count = 0;
-        for (uint8_t ep = 1; ep <= APP_MAX_ENDPOINTS; ep++) {
+        for (uint8_t ep = 1; ep <= poll_endpoint_count; ep++) {
             modbus_pending_endpoint_frame_t *p = &pending[ep - 1u];
             if (!p->payload) continue;
 
@@ -1498,7 +1728,9 @@ static void poll_task(void *arg)
                  "========== UART BURST COMPLETE: sent_frames=%u queued_frames=%u; NEXT MODBUS SWEEP IN %u ms ==========",
                  sent_count, pending_count, (unsigned)POLL_PERIOD_MS);
 #else
-        ESP_LOGI(TAG, "Per-endpoint sweep complete; next Modbus sweep in %u ms",
+        ESP_LOGI(TAG, "Per-endpoint sweep complete; endpoint_count=%u sweep=%ums idle=%ums",
+                 (unsigned)poll_endpoint_count,
+                 (unsigned)((esp_timer_get_time() - sweep_start_us) / 1000),
                  (unsigned)POLL_PERIOD_MS);
 #endif
 
@@ -1550,6 +1782,7 @@ esp_err_t modbus_status_to_json(cJSON *array)
             cJSON_AddNumberToObject(r,"attribute_id",as->attribute_id);
             cJSON_AddNumberToObject(r,"function",as->function);
             cJSON_AddNumberToObject(r,"data_type",as->data_type);
+            cJSON_AddNumberToObject(r,"reg_count",as->reg_count);
             cJSON_AddNumberToObject(r,"reference",as->reference);
             cJSON_AddNumberToObject(r,"address",as->address);
             cJSON_AddNumberToObject(r,"packed_count",as->packed_count);

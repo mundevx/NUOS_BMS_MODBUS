@@ -21,6 +21,8 @@
 #define NUOS_LINK_TYPE_ZB_CONFIG_BEGIN 0x30u
 #define NUOS_LINK_TYPE_ZB_CONFIG_EP 0x31u
 #define NUOS_LINK_TYPE_ZB_CONFIG_COMMIT 0x32u
+/* C6 -> H2: erase Zigbee network datasets and reboot H2. */
+#define NUOS_LINK_TYPE_FACTORY_RESET 0x33u
 #define NUOS_ZB_CONFIG_VERSION 0x02u
 #define NUOS_LINK_ST_OK 0x00u
 #define NUOS_LINK_ST_NOT_JOINED 0x01u

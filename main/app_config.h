@@ -106,6 +106,8 @@ typedef struct {
 esp_err_t app_config_init(void);
 esp_err_t app_config_load_serial(serial_config_t *cfg);
 esp_err_t app_config_save_serial(const serial_config_t *cfg);
+esp_err_t app_config_load_lt_station(uint8_t *station_id);
+esp_err_t app_config_save_lt_station(uint8_t station_id);
 esp_err_t app_config_load_endpoint(uint8_t endpoint, endpoint_config_t *cfg);
 esp_err_t app_config_save_endpoint(uint8_t endpoint, const endpoint_config_t *cfg);
 esp_err_t app_config_delete_endpoint(uint8_t endpoint);
